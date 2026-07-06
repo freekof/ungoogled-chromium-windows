@@ -1,3 +1,4 @@
+using System.IO;
 using FpBrowserLauncher.Models;
 
 namespace FpBrowserLauncher.Services;

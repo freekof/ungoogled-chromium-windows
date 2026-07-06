@@ -1,3 +1,4 @@
+using System.IO;
 using FpBrowserLauncher.Services;
 
 namespace FpBrowserLauncher.Tests;
