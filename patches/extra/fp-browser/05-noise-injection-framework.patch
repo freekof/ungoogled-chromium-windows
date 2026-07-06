@@ -1,0 +1,145 @@
+# Fingerprint browser: deterministic noise framework and JS readback hooks.
+
+--- /dev/null
++++ b/base/fp_config/fp_noise.h
+@@ -0,0 +1,63 @@
++// Copyright 2026 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef BASE_FP_CONFIG_FP_NOISE_H_
++#define BASE_FP_CONFIG_FP_NOISE_H_
++
++#include <stddef.h>
++#include <stdint.h>
++
++#include <algorithm>
++
++#include "base/fp_config/fp_config.h"
++
++namespace fp_noise {
++
++inline uint8_t ByteNoise(uint64_t salt) {
++  return static_cast<uint8_t>(fp_config::StableNoiseUnit(salt) * 3.0);
++}
++
++inline void InjectBytes(uint8_t* data, size_t size, uint64_t salt) {
++  if (!data || size == 0) {
++    return;
++  }
++  for (size_t i = 0; i < size; i += 97) {
++    uint8_t noise = ByteNoise(salt + i);
++    data[i] = static_cast<uint8_t>(std::clamp<int>(data[i] + noise - 1, 0, 255));
++  }
++}
++
++inline float InjectFloat(float value, uint64_t salt, float amplitude) {
++  return value + static_cast<float>(fp_config::StableNoise(salt, amplitude));
++}
++
++inline double InjectDouble(double value, uint64_t salt, double amplitude) {
++  return value + fp_config::StableNoise(salt, amplitude);
++}
++
++}  // namespace fp_noise
++
++#endif  // BASE_FP_CONFIG_FP_NOISE_H_
+--- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
++++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
+@@ -5,6 +5,8 @@
+ #include "third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h"
+ 
++#include "base/fp_config/fp_config.h"
++#include "base/fp_config/fp_noise.h"
+ #include "base/check_op.h"
+ #include "base/containers/contains.h"
+ #include "base/feature_list.h"
+@@ -5691,6 +5693,10 @@ void WebGLRenderingContextBase::ReadPixelsHelper(
+   ContextGL()->ReadPixels(x, y, width, height, format, type, pixels);
++  if (fp_config::NoiseEnabled("webgl_image") && pixels) {
++    fp_noise::InjectBytes(static_cast<uint8_t*>(pixels),
++                          static_cast<size_t>(width * height * 4), 0x57474c);
++  }
+ }
+--- a/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
++++ b/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
+@@ -5,6 +5,8 @@
+ #include "third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.h"
+ 
++#include "base/fp_config/fp_config.h"
++#include "base/fp_config/fp_noise.h"
+ #include "base/compiler_specific.h"
+ #include "base/containers/span.h"
+ #include "base/feature_list.h"
+@@ -1719,6 +1721,10 @@ ImageData* BaseRenderingContext2D::getImageDataInternal(
+       color_settings, data_color_space, pixel_format, exception_state);
++  if (fp_config::NoiseEnabled("canvas") && image_data) {
++    fp_noise::InjectBytes(image_data->data()->Data(), image_data->data()->length(),
++                          0x43414e564153ull);
++  }
+   return image_data;
+ }
+--- a/third_party/blink/renderer/modules/webaudio/offline_audio_context.cc
++++ b/third_party/blink/renderer/modules/webaudio/offline_audio_context.cc
+@@ -5,6 +5,8 @@
+ #include "third_party/blink/renderer/modules/webaudio/offline_audio_context.h"
+ 
++#include "base/fp_config/fp_config.h"
++#include "base/fp_config/fp_noise.h"
+ #include "base/auto_reset.h"
+ #include "base/metrics/histogram_functions.h"
+ #include "third_party/blink/renderer/bindings/modules/v8/v8_offline_audio_completion_event_init.h"
+@@ -344,6 +346,15 @@ void OfflineAudioContext::FireCompletionEvent() {
+   AudioBuffer* rendered_buffer = DestinationHandler().RenderedBuffer();
++  if (fp_config::NoiseEnabled("audio_context") && rendered_buffer) {
++    for (unsigned channel = 0; channel < rendered_buffer->numberOfChannels(); ++channel) {
++      DOMFloat32Array* data = rendered_buffer->getChannelData(channel);
++      for (unsigned i = 0; i < data->length(); i += 211) {
++        data->Data()[i] = fp_noise::InjectFloat(data->Data()[i],
++                                                0x415544494full + i + channel,
++                                                0.0000003f);
++      }
++    }
++  }
+   OfflineAudioCompletionEventInit* init =
+       OfflineAudioCompletionEventInit::Create();
+--- a/third_party/blink/renderer/core/dom/element.cc
++++ b/third_party/blink/renderer/core/dom/element.cc
+@@ -5,6 +5,8 @@
+ #include "third_party/blink/renderer/core/dom/element.h"
+ 
++#include "base/fp_config/fp_config.h"
++#include "base/fp_config/fp_noise.h"
+ #include "base/auto_reset.h"
+ #include "base/compiler_specific.h"
+ #include "base/containers/adapters.h"
+@@ -1212,6 +1214,12 @@ DOMRect* Element::GetBoundingClientRect() {
+   gfx::RectF result = GetBoundingClientRectNoLifecycleUpdate();
++  if (fp_config::NoiseEnabled("client_rects")) {
++    result.set_x(fp_noise::InjectFloat(result.x(), 0x43525801, 0.02f));
++    result.set_y(fp_noise::InjectFloat(result.y(), 0x43525802, 0.02f));
++    result.set_width(fp_noise::InjectFloat(result.width(), 0x43525803, 0.02f));
++    result.set_height(fp_noise::InjectFloat(result.height(), 0x43525804, 0.02f));
++  }
+   return DOMRect::FromRectF(result);
+ }
+--- a/third_party/blink/renderer/modules/speech/speech_synthesis.cc
++++ b/third_party/blink/renderer/modules/speech/speech_synthesis.cc
+@@ -5,6 +5,7 @@
+ #include "third_party/blink/renderer/modules/speech/speech_synthesis.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "third_party/blink/renderer/bindings/modules/v8/v8_speech_synthesis_error_event_init.h"
+ #include "third_party/blink/renderer/bindings/modules/v8/v8_speech_synthesis_event_init.h"
+ #include "third_party/blink/renderer/core/dom/events/event.h"
+@@ -274,6 +275,11 @@ void SpeechSynthesis::OnSetVoiceList(
+   voice_list_.clear();
+   for (const auto& voice : voices)
+     voice_list_.push_back(MakeGarbageCollected<SpeechSynthesisVoice>(voice));
++  if (fp_config::NoiseEnabled("speech_voices") && voice_list_.size() > 4) {
++    while (voice_list_.size() > 4) {
++      voice_list_.pop_back();
++    }
++  }
+   VoicesDidChange();
+ }

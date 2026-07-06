@@ -21,3 +21,14 @@ ungoogled-chromium/windows/windows-fix-building-with-rust.patch
 ungoogled-chromium/windows/windows-fix-remove-unused-preferences-fields.patch
 ungoogled-chromium/windows/windows-fix-missing-includes.patch
 ungoogled-chromium/windows/windows-fix-unsupported-llvm-flags.patch
+extra/fp-browser/01-config-injector.patch
+extra/fp-browser/02-webrtc-modes.patch
+extra/fp-browser/03-timezone-geolocation-language.patch
+extra/fp-browser/04-resolution-fonts.patch
+extra/fp-browser/05-noise-injection-framework.patch
+extra/fp-browser/06-webgl-webgpu-metadata.patch
+extra/fp-browser/07-cpu-ram-navigator.patch
+extra/fp-browser/08-mac-device-name.patch
+extra/fp-browser/09-port-scan-protection.patch
+extra/fp-browser/10-tls-fingerprint.patch
+extra/fp-browser/11-udp-over-socks5.patch

@@ -1,0 +1,79 @@
+# Fingerprint browser: WebRTC modes and ICE candidate replacement.
+
+--- a/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection.cc
++++ b/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection.cc
+@@ -31,6 +31,7 @@
+ #include <string>
+ #include <utility>
+ 
++#include "base/fp_config/fp_config.h"
+ #include "base/compiler_specific.h"
+ #include "base/containers/to_vector.h"
+ #include "base/feature_list.h"
+@@ -251,6 +252,12 @@ RTCPeerConnection* RTCPeerConnection::Create(
+         "PeerConnections may not be created in detached documents.");
+     return nullptr;
+   }
++  if (fp_config::WebRtcDisabled()) {
++    exception_state.ThrowDOMException(
++        DOMExceptionCode::kNotSupportedError,
++        "RTCPeerConnection is disabled by the active fingerprint profile.");
++    return nullptr;
++  }
+ 
+   // Count number of PeerConnections that could potentially be impacted by CSP
+   auto* content_security_policy = context->GetContentSecurityPolicy();
+@@ -497,6 +504,12 @@ webrtc::PeerConnectionInterface::RTCConfiguration ParseConfiguration(
+ 
+   web_configuration.ice_candidate_pool_size =
+       configuration->iceCandidatePoolSize();
++
++  if (fp_config::WebRtcProxyUdp()) {
++    web_configuration.type = webrtc::PeerConnectionInterface::kRelay;
++  }
++  if (fp_config::WebRtcReplaceCandidate() && fp_config::FakePublicIp()) {
++    web_configuration.disable_ipv6_on_wifi = true;
++  }
+ 
+   if (configuration->hasRtcAudioJitterBufferMaxPackets()) {
+     UseCounter::Count(context, WebFeature::kRTCMaxAudioBufferSize);
+--- a/third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.cc
++++ b/third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.cc
+@@ -5,6 +5,7 @@
+ #include "third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
+ #include "third_party/webrtc/api/jsep_ice_candidate.h"
+ 
+@@ -23,7 +24,11 @@ RTCIceCandidatePlatform::RTCIceCandidatePlatform(
+     String username_fragment,
+     String url)
+     : candidate_(candidate),
+       sdp_mid_(sdp_mid),
+       sdp_m_line_index_(sdp_m_line_index),
+       username_fragment_(username_fragment),
+       url_(url) {
++  if (fp_config::WebRtcReplaceCandidate()) {
++    candidate_ = String::FromUTF8(
++        fp_config::RewriteCandidateIp(candidate_.Utf8()));
++  }
+   PopulateFields();
+ }
+--- a/content/renderer/renderer_blink_platform_impl.cc
++++ b/content/renderer/renderer_blink_platform_impl.cc
+@@ -7,6 +7,7 @@
+ 
++#include "base/fp_config/fp_config.h"
+ #include "base/command_line.h"
+ #include "base/feature_list.h"
+ #include "base/functional/bind.h"
+@@ -1450,6 +1451,10 @@ blink::WebString RendererBlinkPlatformImpl::GetWebRTCRendererPreferences(
+   const blink::RendererPreferences& renderer_preferences =
+       render_frame->GetRendererPreferences();
++  if (fp_config::WebRtcProxyUdp()) {
++    return blink::WebString::FromASCII("disable_non_proxied_udp");
++  }
+   return blink::WebString::FromASCII(
+       renderer_preferences.webrtc_ip_handling_policy);
+ }

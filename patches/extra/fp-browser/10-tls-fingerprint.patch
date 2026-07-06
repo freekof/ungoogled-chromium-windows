@@ -1,0 +1,42 @@
+# Fingerprint browser: TLS fingerprint mode plumbing.
+
+--- a/net/socket/ssl_client_socket_impl.cc
++++ b/net/socket/ssl_client_socket_impl.cc
+@@ -5,6 +5,7 @@
+ #include "net/socket/ssl_client_socket_impl.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include <algorithm>
+ #include <memory>
+ #include <string_view>
+@@ -1017,6 +1018,17 @@ int SSLClientSocketImpl::Init() {
+   SSL_set_permute_extensions(ssl_.get(),
+                              ssl_config_.permute_extensions ? 1 : 0);
++  if (fp_config::ModeIs("tls_fingerprint.mode", "fixed_chrome")) {
++    // Fixed mode intentionally disables Chromium's extension permutation so a
++    // profile can be tested against deterministic JA3-style observations.
++    SSL_set_permute_extensions(ssl_.get(), 0);
++  }
++  if (fp_config::ModeIs("tls_fingerprint.mode", "chrome_default")) {
++    // Preserve upstream Chromium behavior.
++  }
+ 
+   if (!ssl_config_.alpn_protos.empty()) {
+     std::vector<uint8_t> wire_format;
+--- a/net/ssl/ssl_config_service.cc
++++ b/net/ssl/ssl_config_service.cc
+@@ -5,6 +5,7 @@
+ #include "net/ssl/ssl_config_service.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "base/check_op.h"
+ #include "base/containers/contains.h"
+ 
+@@ -84,6 +85,12 @@ SSLContextConfig SSLConfigService::GetSSLContextConfig() const {
+   SSLContextConfig config = GetSSLContextConfigImpl();
++  if (fp_config::ModeIs("tls_fingerprint.mode", "fixed_chrome")) {
++    config.tls13_variant = SSLContextConfig::TLS13Variant::kDisabled;
++    config.tls13_cipher_prefer_aes_256 = false;
++  }
+   return config;
+ }

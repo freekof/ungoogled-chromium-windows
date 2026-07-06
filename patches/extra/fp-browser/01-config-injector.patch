@@ -1,0 +1,313 @@
+# Fingerprint browser: shared --fp-config JSON loader.
+
+--- a/chrome/common/chrome_switches.cc
++++ b/chrome/common/chrome_switches.cc
+@@ -371,6 +371,9 @@ const char kForceFirstRun[] = "force-first-run";
+ const char kForceWhatsNew[] = "force-whats-new";
+ 
++// Specifies the path to the fingerprint configuration JSON file.
++const char kFpConfig[] = "fp-config";
++
+ // Does not show the crash restore bubble when the browser is started during the
+ // system startup phase in ChromeOS, if the ChromeOS full restore feature is
+ // enabled, because the ChromeOS full restore notification is shown for the user
+--- a/chrome/common/chrome_switches.h
++++ b/chrome/common/chrome_switches.h
+@@ -119,6 +119,7 @@ extern const char kForceAppMode[];
+ extern const char kForceFirstRun[];
+ extern const char kRefreshPlatformPolicy[];
+ extern const char kForceWhatsNew[];
++extern const char kFpConfig[];
+ extern const char kHideCrashRestoreBubble[];
+ extern const char kHomePage[];
+ #if !BUILDFLAG(IS_ANDROID)
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -3566,6 +3567,7 @@ void ChromeContentBrowserClient::AppendExtraCommandLineSwitches(
+   static const char* const kCommonSwitchNames[] = {
++      switches::kFpConfig,
+       embedder_support::kUserAgent,
+       switches::kUserDataDir,  // Make logs go to the right file.
+   };
+--- /dev/null
++++ b/base/fp_config/fp_config.h
+@@ -0,0 +1,313 @@
++// Copyright 2026 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef BASE_FP_CONFIG_FP_CONFIG_H_
++#define BASE_FP_CONFIG_FP_CONFIG_H_
++
++#include <algorithm>
++#include <cmath>
++#include <cstdint>
++#include <optional>
++#include <string>
++#include <string_view>
++#include <vector>
++
++#include "base/command_line.h"
++#include "base/files/file_path.h"
++#include "base/files/file_util.h"
++#include "base/json/json_reader.h"
++#include "base/strings/string_number_conversions.h"
++#include "base/strings/string_split.h"
++#include "base/strings/string_util.h"
++#include "base/values.h"
++
++namespace fp_config {
++
++inline constexpr char kSwitchName[] = "fp-config";
++
++inline std::optional<base::Value::Dict> LoadRoot() {
++  const base::CommandLine* command_line =
++      base::CommandLine::ForCurrentProcess();
++  if (!command_line || !command_line->HasSwitch(kSwitchName)) {
++    return std::nullopt;
++  }
++
++  std::string json;
++  if (!base::ReadFileToString(command_line->GetSwitchValuePath(kSwitchName),
++                              &json)) {
++    return std::nullopt;
++  }
++
++  std::optional<base::Value> value = base::JSONReader::Read(json);
++  if (!value || !value->is_dict()) {
++    return std::nullopt;
++  }
++  return std::move(*value).TakeDict();
++}
++
++inline const base::Value::Dict* Root() {
++  static const std::optional<base::Value::Dict> root = LoadRoot();
++  return root ? &root.value() : nullptr;
++}
++
++inline bool Enabled() {
++  return Root() != nullptr;
++}
++
++inline const base::Value* FindPath(std::string_view path) {
++  const base::Value::Dict* dict = Root();
++  if (!dict) {
++    return nullptr;
++  }
++
++  std::vector<std::string_view> parts = base::SplitStringPiece(
++      path, ".", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
++  if (parts.empty()) {
++    return nullptr;
++  }
++
++  const base::Value::Dict* current_dict = dict;
++  const base::Value* current_value = nullptr;
++  for (size_t i = 0; i < parts.size(); ++i) {
++    current_value = current_dict->Find(parts[i]);
++    if (!current_value) {
++      return nullptr;
++    }
++    if (i + 1 == parts.size()) {
++      return current_value;
++    }
++    if (!current_value->is_dict()) {
++      return nullptr;
++    }
++    current_dict = &current_value->GetDict();
++  }
++  return nullptr;
++}
++
++inline std::optional<std::string> GetString(std::string_view path) {
++  const base::Value* value = FindPath(path);
++  if (!value || !value->is_string()) {
++    return std::nullopt;
++  }
++  return value->GetString();
++}
++
++inline std::optional<int> GetInt(std::string_view path) {
++  const base::Value* value = FindPath(path);
++  if (!value || !value->is_int()) {
++    return std::nullopt;
++  }
++  return value->GetInt();
++}
++
++inline std::optional<double> GetDouble(std::string_view path) {
++  const base::Value* value = FindPath(path);
++  if (!value) {
++    return std::nullopt;
++  }
++  if (value->is_double()) {
++    return value->GetDouble();
++  }
++  if (value->is_int()) {
++    return static_cast<double>(value->GetInt());
++  }
++  return std::nullopt;
++}
++
++inline std::optional<bool> GetBool(std::string_view path) {
++  const base::Value* value = FindPath(path);
++  if (!value || !value->is_bool()) {
++    return std::nullopt;
++  }
++  return value->GetBool();
++}
++
++inline std::vector<std::string> GetStringList(std::string_view path) {
++  std::vector<std::string> result;
++  const base::Value* value = FindPath(path);
++  if (!value || !value->is_list()) {
++    return result;
++  }
++  for (const base::Value& item : value->GetList()) {
++    if (item.is_string()) {
++      result.push_back(item.GetString());
++    }
++  }
++  return result;
++}
++
++inline std::vector<int> GetIntList(std::string_view path) {
++  std::vector<int> result;
++  const base::Value* value = FindPath(path);
++  if (!value || !value->is_list()) {
++    return result;
++  }
++  for (const base::Value& item : value->GetList()) {
++    if (item.is_int()) {
++      result.push_back(item.GetInt());
++    }
++  }
++  return result;
++}
++
++inline bool ModeIs(std::string_view path, std::string_view mode) {
++  std::optional<std::string> configured = GetString(path);
++  return configured && base::EqualsCaseInsensitiveASCII(*configured, mode);
++}
++
++inline bool WebRtcDisabled() {
++  return ModeIs("webrtc.mode", "disabled") ||
++         ModeIs("webrtc.mode", "disable");
++}
++
++inline bool WebRtcProxyUdp() {
++  return ModeIs("webrtc.mode", "proxy_udp") ||
++         ModeIs("webrtc.mode", "forward");
++}
++
++inline bool WebRtcReplaceCandidate() {
++  return ModeIs("webrtc.mode", "replace") || WebRtcProxyUdp();
++}
++
++inline std::optional<std::string> FakePublicIp() {
++  if (std::optional<std::string> value = GetString("webrtc.fake_public_ip")) {
++    return value;
++  }
++  if (std::optional<std::string> value = GetString("proxy.public_ip")) {
++    return value;
++  }
++  return std::nullopt;
++}
++
++inline std::optional<std::string> ProxyHost() {
++  return GetString("proxy.host");
++}
++
++inline std::optional<int> ProxyPort() {
++  return GetInt("proxy.port");
++}
++
++inline std::string ProxyUri() {
++  std::optional<std::string> host = ProxyHost();
++  std::optional<int> port = ProxyPort();
++  if (!host || !port || host->empty() || *port <= 0 || *port > 65535) {
++    return std::string();
++  }
++  return "socks5://" + *host + ":" + base::NumberToString(*port);
++}
++
++inline bool ProxyConfigured() {
++  return !ProxyUri().empty();
++}
++
++inline uint64_t Seed() {
++  std::optional<std::string> seed = GetString("profile_seed");
++  if (!seed) {
++    return 0x9e3779b97f4a7c15ull;
++  }
++  uint64_t value = 0;
++  std::string normalized = *seed;
++  normalized.erase(std::remove(normalized.begin(), normalized.end(), '-'),
++                   normalized.end());
++  if (normalized.size() > 16) {
++    normalized.resize(16);
++  }
++  if (!base::HexStringToUInt64(normalized, &value)) {
++    return 0x9e3779b97f4a7c15ull;
++  }
++  return value;
++}
++
++inline double StableNoiseUnit(uint64_t salt) {
++  uint64_t x = Seed() ^ salt ^ 0x9e3779b97f4a7c15ull;
++  x ^= x >> 30;
++  x *= 0xbf58476d1ce4e5b9ull;
++  x ^= x >> 27;
++  x *= 0x94d049bb133111ebull;
++  x ^= x >> 31;
++  return static_cast<double>(x & 0xffff) / 65535.0;
++}
++
++inline double StableNoise(uint64_t salt, double amplitude) {
++  return (StableNoiseUnit(salt) - 0.5) * amplitude;
++}
++
++inline bool NoiseEnabled(std::string_view key) {
++  std::string path = "noise_toggles." + std::string(key);
++  return GetBool(path).value_or(false);
++}
++
++inline std::string RewriteCandidateIp(const std::string& candidate) {
++  std::optional<std::string> fake_ip = FakePublicIp();
++  if (!fake_ip || fake_ip->empty()) {
++    return candidate;
++  }
++
++  std::vector<std::string> parts = base::SplitString(
++      candidate, " ", base::KEEP_WHITESPACE, base::SPLIT_WANT_ALL);
++  // RFC 5245 candidate grammar: foundation component transport priority
++  // connection-address port typ candidate attributes.
++  if (parts.size() >= 5) {
++    parts[4] = *fake_ip;
++    return base::JoinString(parts, " ");
++  }
++  return candidate;
++}
++
++inline bool IsPrivateOrLocalHost(std::string_view host) {
++  if (host == "localhost" || host == "127.0.0.1" || host == "::1") {
++    return true;
++  }
++  if (base::StartsWith(host, "10.") || base::StartsWith(host, "192.168.") ||
++      base::StartsWith(host, "172.16.") || base::StartsWith(host, "172.17.") ||
++      base::StartsWith(host, "172.18.") || base::StartsWith(host, "172.19.") ||
++      base::StartsWith(host, "172.2") || base::StartsWith(host, "172.30.") ||
++      base::StartsWith(host, "172.31.")) {
++    return true;
++  }
++  return false;
++}
++
++inline bool IsAllowedPort(int port) {
++  std::vector<int> allowed = GetIntList("port_scan_protection.allowed_ports");
++  return std::find(allowed.begin(), allowed.end(), port) != allowed.end();
++}
++
++}  // namespace fp_config
++
++#endif  // BASE_FP_CONFIG_FP_CONFIG_H_

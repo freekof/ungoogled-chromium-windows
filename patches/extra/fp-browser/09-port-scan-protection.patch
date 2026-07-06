@@ -1,0 +1,78 @@
+# Fingerprint browser: local/private port scan protection.
+
+--- /dev/null
++++ b/chrome/browser/fp_profile/fp_port_scan_throttle.h
+@@ -0,0 +1,63 @@
++// Copyright 2026 The Chromium Authors
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
++#define CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
++
++#include "base/fp_config/fp_config.h"
++#include "net/base/net_errors.h"
++#include "services/network/public/cpp/resource_request.h"
++#include "third_party/blink/public/common/loader/url_loader_throttle.h"
++#include "url/gurl.h"
++
++namespace fp_profile {
++
++class FpPortScanThrottle final : public blink::URLLoaderThrottle {
++ public:
++  FpPortScanThrottle() = default;
++  ~FpPortScanThrottle() override = default;
++
++  void WillStartRequest(network::ResourceRequest* request,
++                        bool* defer) override {
++    if (!request) {
++      return;
++    }
++    if (!fp_config::GetBool("port_scan_protection.enabled").value_or(false)) {
++      return;
++    }
++    const GURL& url = request->url;
++    if (!url.is_valid() || !url.SchemeIsHTTPOrHTTPS()) {
++      return;
++    }
++    int port = url.EffectiveIntPort();
++    if (fp_config::IsPrivateOrLocalHost(url.host_piece()) &&
++        !fp_config::IsAllowedPort(port)) {
++      delegate_->CancelWithError(net::ERR_BLOCKED_BY_CLIENT,
++                                 "Blocked by fingerprint port scan protection");
++    }
++  }
++};
++
++}  // namespace fp_profile
++
++#endif  // CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
+--- a/chrome/browser/chrome_content_browser_client.cc
++++ b/chrome/browser/chrome_content_browser_client.cc
+@@ -83,6 +83,7 @@
+ #include "chrome/browser/favicon/favicon_utils.h"
++#include "chrome/browser/fp_profile/fp_port_scan_throttle.h"
+ #include "chrome/browser/font_family_cache.h"
+ #include "chrome/browser/headless/headless_mode_util.h"
+ #include "chrome/browser/hid/chrome_hid_delegate.h"
+@@ -4450,6 +4451,7 @@ ChromeContentBrowserClient::CreateURLLoaderThrottles(
+   std::vector<std::unique_ptr<blink::URLLoaderThrottle>> result;
++  result.push_back(std::make_unique<fp_profile::FpPortScanThrottle>());
+ 
+ #if BUILDFLAG(ENABLE_EXTENSIONS_CORE)
+   ChromeContentBrowserClientExtensionsPart::AppendURLLoaderThrottles(
+--- a/chrome/renderer/url_loader_throttle_provider_impl.cc
++++ b/chrome/renderer/url_loader_throttle_provider_impl.cc
+@@ -5,6 +5,7 @@
+ #include "chrome/renderer/url_loader_throttle_provider_impl.h"
+ 
++#include "chrome/browser/fp_profile/fp_port_scan_throttle.h"
+ #include "base/command_line.h"
+ #include "base/feature_list.h"
+ #include "base/memory/ptr_util.h"
+@@ -180,6 +181,7 @@ URLLoaderThrottleProviderImpl::CreateThrottles(
+   std::vector<std::unique_ptr<blink::URLLoaderThrottle>> throttles;
++  throttles.push_back(std::make_unique<fp_profile::FpPortScanThrottle>());
+ 
+   if (type_ == blink::URLLoaderThrottleProviderType::kFrame) {
+     MaybeAppendSafeBrowsingThrottles(&throttles, render_frame_id);

@@ -1,0 +1,97 @@
+# Fingerprint browser: timezone, geolocation, language and Accept-Language.
+
+--- a/third_party/blink/renderer/core/frame/navigator_language.cc
++++ b/third_party/blink/renderer/core/frame/navigator_language.cc
+@@ -5,6 +5,7 @@
+ #include "third_party/blink/renderer/core/frame/navigator_language.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "third_party/blink/renderer/platform/language.h"
+ 
+ namespace blink {
+@@ -24,6 +25,10 @@ AtomicString NavigatorLanguage::language() {
+   const Vector<AtomicString>& languages = this->languages();
+   if (!languages.empty())
+     return languages[0];
++  if (std::optional<std::string> language =
++          fp_config::GetString("language.value")) {
++    return AtomicString::FromUTF8(*language);
++  }
+   return AtomicString();
+ }
+@@ -42,6 +47,12 @@ const Vector<AtomicString>& NavigatorLanguage::languages() {
+     EnsureUpdatedLanguage();
+   }
++  if (std::optional<std::string> language =
++          fp_config::GetString("language.value")) {
++    languages_.clear();
++    languages_.push_back(AtomicString::FromUTF8(*language));
++  }
+   return languages_;
+ }
+--- a/chrome/browser/renderer_preferences_util.cc
++++ b/chrome/browser/renderer_preferences_util.cc
+@@ -5,6 +5,7 @@
+ #include "chrome/browser/renderer_preferences_util.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "base/command_line.h"
+ #include "base/i18n/rtl.h"
+ #include "base/notreached.h"
+@@ -213,6 +214,15 @@ void UpdateFromSystemSettings(blink::RendererPreferences* prefs,
+       blink::ToWebRTCIPHandlingPolicy(
+           profile->GetPrefs()->GetString(prefs::kWebRTCIPHandlingPolicy));
++  if (std::optional<std::string> language =
++          fp_config::GetString("language.value")) {
++    prefs->accept_languages = *language;
++  }
++  if (fp_config::WebRtcProxyUdp()) {
++    prefs->webrtc_ip_handling_policy =
++        blink::WebString::FromASCII("disable_non_proxied_udp").Utf8();
++  }
+ }
+--- a/content/browser/geolocation/geolocation_provider_impl.cc
++++ b/content/browser/geolocation/geolocation_provider_impl.cc
+@@ -5,6 +5,7 @@
+ #include "content/browser/geolocation/geolocation_provider_impl.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "base/functional/bind.h"
+ #include "base/location.h"
+ #include "base/task/single_thread_task_runner.h"
+@@ -248,6 +249,18 @@ void GeolocationProviderImpl::NotifyClients(
+     const device::mojom::Geoposition& position) {
++  if (fp_config::ModeIs("geolocation.mode", "custom")) {
++    device::mojom::Geoposition spoofed;
++    spoofed.latitude = fp_config::GetDouble("geolocation.latitude").value_or(0);
++    spoofed.longitude = fp_config::GetDouble("geolocation.longitude").value_or(0);
++    spoofed.accuracy = fp_config::GetDouble("geolocation.accuracy").value_or(100);
++    spoofed.timestamp = base::Time::Now();
++    for (const auto& client : clients_) {
++      client->OnLocationUpdate(spoofed);
++    }
++    return;
++  }
+   for (const auto& client : clients_) {
+     client->OnLocationUpdate(position);
+   }
+ }
+--- a/base/i18n/timezone.cc
++++ b/base/i18n/timezone.cc
+@@ -5,6 +5,7 @@
+ #include "base/i18n/timezone.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "base/check.h"
+ #include "base/notreached.h"
+ #include "third_party/icu/source/common/unicode/unistr.h"
+@@ -18,6 +19,11 @@ std::u16string GetConfiguredTimeZone() {
+   icu::UnicodeString zone;
++  if (std::optional<std::string> timezone =
++          fp_config::GetString("timezone.value")) {
++    zone = icu::UnicodeString::fromUTF8(*timezone);
++    return base::i18n::UnicodeStringToString16(zone);
++  }
+   std::unique_ptr<icu::TimeZone> time_zone(icu::TimeZone::createDefault());
+   time_zone->getID(zone);
+   return base::i18n::UnicodeStringToString16(zone);

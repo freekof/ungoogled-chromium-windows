@@ -1,0 +1,50 @@
+# Fingerprint browser: MAC address and device name overrides.
+
+--- a/net/base/network_interfaces_win.cc
++++ b/net/base/network_interfaces_win.cc
+@@ -5,6 +5,7 @@
+ #include "net/base/network_interfaces.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include <winsock2.h>
+ #include <ws2tcpip.h>
+ #include <iphlpapi.h>
+@@ -246,6 +247,19 @@ bool GetNetworkList(NetworkInterfaceList* networks,
+       continue;
+     }
+ 
++    if (std::optional<std::string> mac =
++            fp_config::GetString("mac_address")) {
++      std::vector<std::string_view> parts = base::SplitStringPiece(
++          *mac, "-:", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
++      if (parts.size() == 6) {
++        for (size_t i = 0; i < 6 && i < address.address.size(); ++i) {
++          unsigned int byte_value = 0;
++          if (base::HexStringToUInt(parts[i], &byte_value)) {
++            address.address[i] = static_cast<uint8_t>(byte_value & 0xff);
++          }
++        }
++      }
++    }
+     networks->push_back(address);
+   }
+   return true;
+ }
+--- a/base/system/sys_info_win.cc
++++ b/base/system/sys_info_win.cc
+@@ -5,6 +5,7 @@
+ #include "base/system/sys_info.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include <windows.h>
+ 
+ namespace base {
+@@ -81,6 +82,9 @@ std::string SysInfo::OperatingSystemArchitecture() {
+ }
+ 
+ std::string SysInfo::HardwareModelName() {
++  if (std::optional<std::string> device_name = fp_config::GetString("device_name")) {
++    return *device_name;
++  }
+   return std::string();
+ }
