@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using FpBrowserLauncher.Models;
 using FpBrowserLauncher.Services;
+using Xunit;
 
 namespace FpBrowserLauncher.Tests;
 

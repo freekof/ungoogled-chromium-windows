@@ -1,5 +1,6 @@
 using System.IO;
 using FpBrowserLauncher.Services;
+using Xunit;
 
 namespace FpBrowserLauncher.Tests;
 
