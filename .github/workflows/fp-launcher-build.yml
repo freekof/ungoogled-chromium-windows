@@ -1,0 +1,55 @@
+name: FP Launcher Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      configuration:
+        description: Build configuration
+        required: true
+        default: Release
+        type: choice
+        options:
+          - Release
+          - Debug
+
+jobs:
+  build-test-publish:
+    name: Build, test, and publish launcher
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore app
+        run: dotnet restore src/FpBrowserLauncher/FpBrowserLauncher.csproj
+
+      - name: Restore tests
+        run: dotnet restore tests/FpBrowserLauncher.Tests/FpBrowserLauncher.Tests.csproj
+
+      - name: Build tests
+        run: dotnet build tests/FpBrowserLauncher.Tests/FpBrowserLauncher.Tests.csproj -c ${{ inputs.configuration }} --no-restore
+
+      - name: Run tests
+        run: dotnet test tests/FpBrowserLauncher.Tests/FpBrowserLauncher.Tests.csproj -c ${{ inputs.configuration }} --no-build --logger trx --results-directory TestResults
+
+      - name: Publish win-x64 app
+        run: dotnet publish src/FpBrowserLauncher/FpBrowserLauncher.csproj -c ${{ inputs.configuration }} -r win-x64 --self-contained false -o artifacts/FpBrowserLauncher-win-x64
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fp-launcher-test-results
+          path: TestResults
+
+      - name: Upload launcher artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FpBrowserLauncher-win-x64
+          path: artifacts/FpBrowserLauncher-win-x64
