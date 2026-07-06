@@ -43,7 +43,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         LaunchProfileCommand = new AsyncRelayCommand(LaunchProfileAsync, () => SelectedProfile is not null || !string.IsNullOrWhiteSpace(ProfileId));
         StopProfileCommand = new RelayCommand(StopProfile, () => SelectedProfile is not null);
 
-        _ = InitializeAsync();
+        _ = InitializeAsyncSafe();
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -136,6 +136,18 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         var settings = await _settingsStore.LoadAsync();
         ChromiumPath = settings.ChromiumPath;
         await RefreshAsync();
+    }
+
+    private async Task InitializeAsyncSafe()
+    {
+        try
+        {
+            await InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"初始化失败：{ex.Message}";
+        }
     }
 
     private async Task SaveSettingsAsync()
