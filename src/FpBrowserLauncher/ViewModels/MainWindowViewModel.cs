@@ -94,6 +94,111 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ObservableCollection<ProfileSummary> Profiles { get; } = [];
+    public IReadOnlyList<SelectionOption> WebRtcModeOptions { get; } =
+    [
+        new("转发", "forward"),
+        new("替换", "replace"),
+        new("真实", "real"),
+        new("禁用", "disabled"),
+        new("代理 UDP", "proxy_udp")
+    ];
+
+    public IReadOnlyList<SelectionOption> TimezoneModeOptions { get; } =
+    [
+        new("基于 IP", "based_on_ip"),
+        new("真实", "real"),
+        new("自定义", "custom")
+    ];
+
+    public IReadOnlyList<string> TimezoneValueOptions { get; } =
+    [
+        "Asia/Shanghai",
+        "America/New_York",
+        "Europe/London",
+        "Europe/Berlin",
+        "Asia/Tokyo",
+        "Etc/GMT+12"
+    ];
+
+    public IReadOnlyList<SelectionOption> GeolocationModeOptions { get; } =
+    [
+        new("基于 IP", "based_on_ip"),
+        new("自定义", "custom"),
+        new("禁止", "disabled")
+    ];
+
+    public IReadOnlyList<SelectionOption> GeolocationPromptPolicyOptions { get; } =
+    [
+        new("每次询问", "ask_every_time"),
+        new("始终允许", "always_allow")
+    ];
+
+    public IReadOnlyList<SelectionOption> LanguageModeOptions { get; } =
+    [
+        new("基于 IP", "based_on_ip"),
+        new("自定义", "custom")
+    ];
+
+    public IReadOnlyList<SelectionOption> UiLanguageModeOptions { get; } =
+    [
+        new("基于语言", "based_on_language"),
+        new("真实", "real"),
+        new("自定义", "custom")
+    ];
+
+    public IReadOnlyList<SelectionOption> ResolutionModeOptions { get; } =
+    [
+        new("基于 User-Agent", "based_on_ua"),
+        new("自定义", "custom")
+    ];
+
+    public IReadOnlyList<SelectionOption> FontsModeOptions { get; } =
+    [
+        new("默认", "default"),
+        new("自定义", "custom")
+    ];
+
+    public IReadOnlyList<SelectionOption> WebGlModeOptions { get; } =
+    [
+        new("真实", "real"),
+        new("自定义", "custom")
+    ];
+
+    public IReadOnlyList<SelectionOption> WebGpuModeOptions { get; } =
+    [
+        new("基于 WebGL", "based_on_webgl"),
+        new("真实", "real"),
+        new("禁用", "disabled")
+    ];
+
+    public IReadOnlyList<string> CpuCoreOptions { get; } = ["2", "4", "6", "8", "12", "16", "20", "32"];
+    public IReadOnlyList<string> MemoryOptions { get; } = ["4", "8", "16", "32", "64"];
+
+    public IReadOnlyList<SelectionOption> DoNotTrackOptions { get; } =
+    [
+        new("默认", "default"),
+        new("开启", "enabled"),
+        new("关闭", "disabled")
+    ];
+
+    public IReadOnlyList<BoolSelectionOption> EnabledDisabledOptions { get; } =
+    [
+        new("启用", true),
+        new("关闭", false)
+    ];
+
+    public IReadOnlyList<SelectionOption> HardwareAccelerationOptions { get; } =
+    [
+        new("默认", "default"),
+        new("开启", "enabled"),
+        new("关闭", "disabled")
+    ];
+
+    public IReadOnlyList<SelectionOption> TlsFingerprintModeOptions { get; } =
+    [
+        new("开启", "fixed_chrome"),
+        new("关闭", "chrome_default")
+    ];
 
     public AsyncRelayCommand SaveSettingsCommand { get; }
     public AsyncRelayCommand RefreshCommand { get; }
@@ -363,32 +468,50 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private void ApplyFingerprintSettings(FingerprintConfig fingerprint)
     {
         var languages = SplitCsv(LanguagesText);
-        fingerprint.WebRtc = new ModeValue { Mode = WebRtcMode.Trim() };
-        fingerprint.Timezone = new ModeValue { Mode = TimezoneMode.Trim(), Value = EmptyToNull(TimezoneValue) };
+        var webRtcMode = NormalizeOption(WebRtcMode, WebRtcModeOptions, "proxy_udp");
+        var timezoneMode = NormalizeOption(TimezoneMode, TimezoneModeOptions, "based_on_ip");
+        var geolocationMode = NormalizeOption(GeolocationMode, GeolocationModeOptions, "based_on_ip");
+        var geolocationPromptPolicy = NormalizeOption(GeolocationPromptPolicy, GeolocationPromptPolicyOptions, "ask_every_time");
+        var languageMode = NormalizeOption(LanguageMode, LanguageModeOptions, "based_on_ip");
+        var uiLanguageMode = NormalizeOption(UiLanguageMode, UiLanguageModeOptions, "based_on_language");
+        var resolutionMode = NormalizeOption(ResolutionMode, ResolutionModeOptions, "based_on_ua");
+        var fontsMode = NormalizeOption(FontsMode, FontsModeOptions, "custom");
+        var webGlMode = NormalizeOption(WebGlMode, WebGlModeOptions, "custom");
+        var webGpuMode = NormalizeOption(WebGpuMode, WebGpuModeOptions, "based_on_webgl");
+        var languageValue = languages.FirstOrDefault() ?? EmptyToNull(LanguagesText);
+        var uiLanguageValue = uiLanguageMode switch
+        {
+            "real" => null,
+            "based_on_language" => languageValue,
+            _ => EmptyToNull(UiLanguageValue)
+        };
+
+        fingerprint.WebRtc = new ModeValue { Mode = webRtcMode };
+        fingerprint.Timezone = new ModeValue { Mode = timezoneMode, Value = IsMode(timezoneMode, "real") ? null : EmptyToNull(TimezoneValue) };
         fingerprint.Geolocation = new GeolocationValue
         {
-            Mode = GeolocationMode.Trim(),
-            PromptPolicy = GeolocationPromptPolicy.Trim(),
-            Latitude = ParseNullableDouble(GeolocationLatitude),
-            Longitude = ParseNullableDouble(GeolocationLongitude),
-            Accuracy = ParseNullableDouble(GeolocationAccuracy)
+            Mode = geolocationMode,
+            PromptPolicy = geolocationPromptPolicy,
+            Latitude = IsMode(geolocationMode, "custom") ? ParseNullableDouble(GeolocationLatitude) : null,
+            Longitude = IsMode(geolocationMode, "custom") ? ParseNullableDouble(GeolocationLongitude) : null,
+            Accuracy = IsMode(geolocationMode, "custom") ? ParseNullableDouble(GeolocationAccuracy) : null
         };
-        fingerprint.Language = new ModeValue { Mode = LanguageMode.Trim(), Value = languages.FirstOrDefault() ?? EmptyToNull(LanguagesText) };
+        fingerprint.Language = new ModeValue { Mode = languageMode, Value = languageValue };
         fingerprint.Languages = languages;
-        fingerprint.UiLanguage = new ModeValue { Mode = UiLanguageMode.Trim(), Value = EmptyToNull(UiLanguageValue) };
-        fingerprint.Resolution = new ResolutionValue { Mode = ResolutionMode.Trim(), Width = ParseIntOrDefault(ResolutionWidth, 1920), Height = ParseIntOrDefault(ResolutionHeight, 1080) };
-        fingerprint.Fonts = new FontsValue { Mode = FontsMode.Trim(), List = SplitCsv(FontsText) };
+        fingerprint.UiLanguage = new ModeValue { Mode = uiLanguageMode, Value = uiLanguageValue };
+        fingerprint.Resolution = new ResolutionValue { Mode = resolutionMode, Width = ParseIntOrDefault(ResolutionWidth, 1920), Height = ParseIntOrDefault(ResolutionHeight, 1080) };
+        fingerprint.Fonts = new FontsValue { Mode = fontsMode, List = IsMode(fontsMode, "custom") ? SplitCsv(FontsText) : [] };
         fingerprint.NoiseToggles = new NoiseToggles { Canvas = CanvasNoise, WebGlImage = WebGlImageNoise, AudioContext = AudioContextNoise, MediaDevices = MediaDevicesNoise, ClientRects = ClientRectsNoise, SpeechVoices = SpeechVoicesNoise };
-        fingerprint.WebGl = new WebGlValue { Mode = WebGlMode.Trim(), Vendor = WebGlVendor.Trim(), Renderer = WebGlRenderer.Trim() };
-        fingerprint.WebGpu = new ModeValue { Mode = WebGpuMode.Trim() };
+        fingerprint.WebGl = new WebGlValue { Mode = webGlMode, Vendor = IsMode(webGlMode, "custom") ? WebGlVendor.Trim() : string.Empty, Renderer = IsMode(webGlMode, "custom") ? WebGlRenderer.Trim() : string.Empty };
+        fingerprint.WebGpu = new ModeValue { Mode = webGpuMode };
         fingerprint.CpuCores = ParseIntOrDefault(CpuCores, 8);
         fingerprint.DeviceMemoryGb = ParseIntOrDefault(DeviceMemoryGb, 8);
         fingerprint.DeviceName = DeviceName.Trim();
         fingerprint.MacAddress = MacAddress.Trim();
-        fingerprint.DoNotTrack = DoNotTrack.Trim();
+        fingerprint.DoNotTrack = NormalizeOption(DoNotTrack, DoNotTrackOptions, "default");
         fingerprint.PortScanProtection = new PortScanProtection { Enabled = PortScanProtectionEnabled, AllowedPorts = SplitCsv(AllowedPorts).Select(port => ParseIntOrDefault(port, -1)).Where(port => port > 0).ToList() };
-        fingerprint.HardwareAcceleration = HardwareAcceleration.Trim();
-        fingerprint.TlsFingerprint = new ModeValue { Mode = TlsFingerprintMode.Trim() };
+        fingerprint.HardwareAcceleration = NormalizeOption(HardwareAcceleration, HardwareAccelerationOptions, "default");
+        fingerprint.TlsFingerprint = new ModeValue { Mode = NormalizeOption(TlsFingerprintMode, TlsFingerprintModeOptions, "chrome_default") };
         fingerprint.ExtraFlags = SplitLines(ExtraFlagsText);
     }
 
@@ -494,6 +617,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private static List<string> SplitLines(string value) => value.Split(new[] { "\r\n", "\n" }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
 
+    private static string NormalizeOption(string value, IReadOnlyList<SelectionOption> options, string fallback)
+    {
+        var trimmed = value.Trim();
+        return options.FirstOrDefault(option => string.Equals(option.Value, trimmed, StringComparison.OrdinalIgnoreCase))?.Value ?? fallback;
+    }
+
+    private static bool IsMode(string value, string mode) => string.Equals(value, mode, StringComparison.OrdinalIgnoreCase);
+
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
@@ -511,3 +642,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
+
+public sealed record SelectionOption(string Label, string Value);
+
+public sealed record BoolSelectionOption(string Label, bool Value);

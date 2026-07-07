@@ -74,6 +74,19 @@
             </Setter>
         </Style>
 
+        <!-- 下拉框样式 -->
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="MinWidth" Value="120" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
         <!-- 切换按钮样式 (胶囊形) -->
         <Style x:Key="ToggleButtonStyle" TargetType="RadioButton">
             <Setter Property="Background" Value="#F3F4F6" />

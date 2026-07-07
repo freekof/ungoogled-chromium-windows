@@ -101,7 +101,7 @@
                                     <Border Style="{StaticResource GreyCardStyle}">
                                         <StackPanel>
                                             <TextBlock Text="WebRTC" Style="{StaticResource SectionTitleStyle}" />
-                                            <TextBox Text="{Binding WebRtcMode, UpdateSourceTrigger=PropertyChanged}" ToolTip="real/disabled/replace/proxy_udp/forward" Style="{StaticResource ModernTextBoxStyle}" />
+                                            <ComboBox ItemsSource="{Binding WebRtcModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding WebRtcMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                         </StackPanel>
                                     </Border>
 
@@ -115,8 +115,8 @@
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding TimezoneMode}" Style="{StaticResource ModernTextBoxStyle}" />
-                                                <TextBox Grid.Column="2" Text="{Binding TimezoneValue}" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox ItemsSource="{Binding TimezoneModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding TimezoneMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
+                                                <ComboBox Grid.Column="2" IsEditable="True" ItemsSource="{Binding TimezoneValueOptions}" Text="{Binding TimezoneValue, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                             </Grid>
                                         </StackPanel>
                                     </Border>
@@ -127,17 +127,17 @@
                                             <TextBlock Text="地理位置" Style="{StaticResource SectionTitleStyle}" />
                                             <Grid Margin="0,0,0,8">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="90" />
+                                                    <ColumnDefinition Width="120" />
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="110" />
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="110" />
                                                     <ColumnDefinition Width="8" />
-                                                    <ColumnDefinition Width="80" />
+                                                    <ColumnDefinition Width="120" />
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding GeolocationMode}" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox ItemsSource="{Binding GeolocationModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding GeolocationMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                                 <TextBox Grid.Column="2" Text="{Binding GeolocationLatitude}" ToolTip="纬度" Style="{StaticResource ModernTextBoxStyle}" />
                                                 <TextBox Grid.Column="4" Text="{Binding GeolocationLongitude}" ToolTip="经度" Style="{StaticResource ModernTextBoxStyle}" />
                                                 <TextBox Grid.Column="6" Text="{Binding GeolocationAccuracy}" ToolTip="精度米" Style="{StaticResource ModernTextBoxStyle}" />
@@ -145,7 +145,7 @@
                                             </Grid>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="授权策略：" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                                <TextBox Text="{Binding GeolocationPromptPolicy}" ToolTip="ask_every_time/always_allow" Width="200" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox ItemsSource="{Binding GeolocationPromptPolicyOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding GeolocationPromptPolicy, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="200" Style="{StaticResource ModernComboBoxStyle}" />
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
@@ -160,7 +160,7 @@
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding LanguageMode}" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox ItemsSource="{Binding LanguageModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding LanguageMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                                 <TextBox Grid.Column="2" Text="{Binding LanguagesText}" ToolTip="逗号分隔，如 en-US,en" Style="{StaticResource ModernTextBoxStyle}" />
                                             </Grid>
                                         </StackPanel>
@@ -176,7 +176,7 @@
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="160" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding UiLanguageMode}" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox ItemsSource="{Binding UiLanguageModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding UiLanguageMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                                 <TextBox Grid.Column="2" Text="{Binding UiLanguageValue}" Style="{StaticResource ModernTextBoxStyle}" />
                                             </Grid>
                                         </StackPanel>
@@ -196,7 +196,7 @@
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding ResolutionMode}" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox ItemsSource="{Binding ResolutionModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding ResolutionMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                                 <TextBox Grid.Column="2" Text="{Binding ResolutionWidth}" Style="{StaticResource ModernTextBoxStyle}" />
                                                 <TextBox Grid.Column="4" Text="{Binding ResolutionHeight}" Style="{StaticResource ModernTextBoxStyle}" />
                                                 <Button Grid.Column="6" Content="↻" Command="{Binding RandomizeResolutionCommand}" Width="32" Height="32" ToolTip="随机分辨率" Style="{StaticResource ModernButtonStyle}" />
@@ -216,7 +216,7 @@
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding FontsMode}" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox ItemsSource="{Binding FontsModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding FontsMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                                 <TextBox Grid.Column="2" Text="{Binding FontsText}" Style="{StaticResource ModernTextBoxStyle}" />
                                                 <Button Grid.Column="4" Content="换一换" Command="{Binding RandomizeFontsCommand}" Padding="8,0" ToolTip="随机字体组合" Style="{StaticResource ModernButtonStyle}" />
                                             </Grid>
@@ -242,7 +242,7 @@
                                     <Border Style="{StaticResource GreyCardStyle}">
                                         <StackPanel>
                                             <TextBlock Text="WebGL" Style="{StaticResource SectionTitleStyle}" />
-                                            <TextBox Text="{Binding WebGlMode}" Margin="0,0,0,8" Style="{StaticResource ModernTextBoxStyle}" />
+                                            <ComboBox ItemsSource="{Binding WebGlModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding WebGlMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" Style="{StaticResource ModernComboBoxStyle}" />
                                             <TextBox Text="{Binding WebGlVendor}" Margin="0,0,0,8" Style="{StaticResource ModernTextBoxStyle}" />
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
@@ -264,15 +264,15 @@
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="130" />
                                                     <ColumnDefinition Width="8" />
-                                                    <ColumnDefinition Width="80" />
+                                                    <ColumnDefinition Width="120" />
                                                     <ColumnDefinition Width="8" />
-                                                    <ColumnDefinition Width="80" />
+                                                    <ColumnDefinition Width="120" />
                                                     <ColumnDefinition Width="8" />
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
-                                                <TextBox Text="{Binding WebGpuMode}" Style="{StaticResource ModernTextBoxStyle}" />
-                                                <TextBox Grid.Column="2" Text="{Binding CpuCores}" Style="{StaticResource ModernTextBoxStyle}" />
-                                                <TextBox Grid.Column="4" Text="{Binding DeviceMemoryGb}" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox ItemsSource="{Binding WebGpuModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding WebGpuMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
+                                                <ComboBox Grid.Column="2" IsEditable="True" ItemsSource="{Binding CpuCoreOptions}" Text="{Binding CpuCores, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
+                                                <ComboBox Grid.Column="4" IsEditable="True" ItemsSource="{Binding MemoryOptions}" Text="{Binding DeviceMemoryGb, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                                 <Button Grid.Column="6" Content="↻" Command="{Binding RandomizeCpuMemoryCommand}" Width="32" Height="32" ToolTip="随机 CPU/RAM" Style="{StaticResource ModernButtonStyle}" />
                                             </Grid>
                                         </StackPanel>
@@ -308,8 +308,9 @@
                                         <StackPanel>
                                             <TextBlock Text="DNT / 端口扫描保护" Style="{StaticResource SectionTitleStyle}" />
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                                <TextBox Width="100" Text="{Binding DoNotTrack}" Style="{StaticResource ModernTextBoxStyle}" />
-                                                <CheckBox Content="端口扫描保护" IsChecked="{Binding PortScanProtectionEnabled}" Margin="8,0,0,0" Style="{StaticResource SwitchStyle}" />
+                                                <ComboBox Width="120" ItemsSource="{Binding DoNotTrackOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding DoNotTrack, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
+                                                <TextBlock Text="端口扫描保护" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="8,0,8,0" />
+                                                <ComboBox Width="100" ItemsSource="{Binding EnabledDisabledOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding PortScanProtectionEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                                 <TextBox Width="220" Margin="8,0,0,0" Text="{Binding AllowedPorts}" ToolTip="允许端口，逗号分隔" Style="{StaticResource ModernTextBoxStyle}" />
                                             </StackPanel>
                                         </StackPanel>
@@ -320,8 +321,8 @@
                                         <StackPanel>
                                             <TextBlock Text="硬件加速 / TLS 指纹" Style="{StaticResource SectionTitleStyle}" />
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBox Width="130" Text="{Binding HardwareAcceleration}" Style="{StaticResource ModernTextBoxStyle}" />
-                                                <TextBox Width="180" Margin="8,0,0,0" Text="{Binding TlsFingerprintMode}" Style="{StaticResource ModernTextBoxStyle}" />
+                                                <ComboBox Width="130" ItemsSource="{Binding HardwareAccelerationOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding HardwareAcceleration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
+                                                <ComboBox Width="180" Margin="8,0,0,0" ItemsSource="{Binding TlsFingerprintModeOptions}" DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding TlsFingerprintMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernComboBoxStyle}" />
                                             </StackPanel>
                                         </StackPanel>
                                     </Border>
