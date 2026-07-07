@@ -80,6 +80,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         DeleteProfileCommand = new AsyncRelayCommand(DeleteProfileAsync, () => SelectedProfile is not null);
         LaunchProfileCommand = new AsyncRelayCommand(LaunchProfileAsync, () => SelectedProfile is not null || !string.IsNullOrWhiteSpace(ProfileId));
         StopProfileCommand = new RelayCommand(StopProfile, () => SelectedProfile is not null);
+        RandomizeGeolocationCommand = new RelayCommand(RandomizeGeolocation);
+        RandomizeResolutionCommand = new RelayCommand(RandomizeResolution);
+        RandomizeFontsCommand = new RelayCommand(RandomizeFonts);
+        RandomizeWebGlCommand = new RelayCommand(RandomizeWebGl);
+        RandomizeCpuMemoryCommand = new RelayCommand(RandomizeCpuMemory);
+        RandomizeDeviceNameCommand = new RelayCommand(RandomizeDeviceName);
+        RandomizeMacAddressCommand = new RelayCommand(RandomizeMacAddress);
 
         _ = InitializeAsyncSafe();
     }
@@ -94,6 +101,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     public AsyncRelayCommand DeleteProfileCommand { get; }
     public AsyncRelayCommand LaunchProfileCommand { get; }
     public RelayCommand StopProfileCommand { get; }
+    public RelayCommand RandomizeGeolocationCommand { get; }
+    public RelayCommand RandomizeResolutionCommand { get; }
+    public RelayCommand RandomizeFontsCommand { get; }
+    public RelayCommand RandomizeWebGlCommand { get; }
+    public RelayCommand RandomizeCpuMemoryCommand { get; }
+    public RelayCommand RandomizeDeviceNameCommand { get; }
+    public RelayCommand RandomizeMacAddressCommand { get; }
 
     public string ChromiumPath
     {
@@ -420,6 +434,54 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         HardwareAcceleration = fingerprint.HardwareAcceleration;
         TlsFingerprintMode = fingerprint.TlsFingerprint.Mode;
         ExtraFlagsText = string.Join(Environment.NewLine, fingerprint.ExtraFlags);
+    }
+
+    private void RandomizeGeolocation()
+    {
+        var geo = FingerprintRandomizer.NextGeolocation();
+        GeolocationMode = "custom";
+        GeolocationLatitude = geo.Latitude.ToString("F6");
+        GeolocationLongitude = geo.Longitude.ToString("F6");
+        GeolocationAccuracy = geo.Accuracy.ToString();
+    }
+
+    private void RandomizeResolution()
+    {
+        var resolution = FingerprintRandomizer.NextResolution();
+        ResolutionMode = resolution.Mode;
+        ResolutionWidth = resolution.Width.ToString();
+        ResolutionHeight = resolution.Height.ToString();
+    }
+
+    private void RandomizeFonts()
+    {
+        FontsMode = "custom";
+        FontsText = string.Join(", ", FingerprintRandomizer.NextFonts());
+    }
+
+    private void RandomizeWebGl()
+    {
+        var webGl = FingerprintRandomizer.NextWebGl();
+        WebGlMode = webGl.Mode;
+        WebGlVendor = webGl.Vendor;
+        WebGlRenderer = webGl.Renderer;
+    }
+
+    private void RandomizeCpuMemory()
+    {
+        var hardware = FingerprintRandomizer.NextCpuAndMemory();
+        CpuCores = hardware.CpuCores.ToString();
+        DeviceMemoryGb = hardware.MemoryGb.ToString();
+    }
+
+    private void RandomizeDeviceName()
+    {
+        DeviceName = FingerprintRandomizer.NextDeviceName();
+    }
+
+    private void RandomizeMacAddress()
+    {
+        MacAddress = FingerprintRandomizer.NextMacAddress();
     }
 
     private static string? EmptyToNull(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
