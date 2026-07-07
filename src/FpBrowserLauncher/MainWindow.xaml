@@ -96,7 +96,7 @@
 
                         <TabItem Header="指纹设置">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <StackPanel Margin="8" Spacing="16">
+                                <StackPanel Margin="8">
                                     <!-- WebRTC 模块 -->
                                     <Border Style="{StaticResource GreyCardStyle}">
                                         <StackPanel>
