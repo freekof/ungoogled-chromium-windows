@@ -50,4 +50,36 @@ public sealed class ChromiumLauncherTests
             Directory.Delete(root, recursive: true);
         }
     }
+
+    [Fact]
+    public void BuildCommandLineArguments_MapsFingerprintSettingsToChromiumFlags()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "fp-launcher-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var store = new ProfileStore(root);
+            var launcher = new ChromiumLauncher(store, new AlwaysAliveProxyTester(), new ProcessTracker(), new LaunchSnapshotWriter(store));
+            var fingerprint = new FingerprintGenerator().Generate("p001");
+            fingerprint.UiLanguage = new ModeValue { Mode = "custom", Value = "en-US" };
+            fingerprint.Resolution = new ResolutionValue { Mode = "custom", Width = 1440, Height = 900 };
+            fingerprint.HardwareAcceleration = "disabled";
+            fingerprint.WebRtc = new ModeValue { Mode = "proxy_udp" };
+            fingerprint.DoNotTrack = "enabled";
+            fingerprint.ExtraFlags = ["--disable-notifications"];
+
+            var args = launcher.BuildCommandLineArguments("p001", fingerprint);
+
+            Assert.Contains("--lang=en-US", args);
+            Assert.Contains("--window-size=1440,900", args);
+            Assert.Contains("--disable-gpu", args);
+            Assert.Contains("--force-webrtc-ip-handling-policy=disable_non_proxied_udp", args);
+            Assert.Contains("--enable-do-not-track", args);
+            Assert.Contains("--disable-notifications", args);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
 }

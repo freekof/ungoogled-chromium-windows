@@ -143,3 +143,25 @@
 +  }
    VoicesDidChange();
  }
+--- a/third_party/blink/renderer/modules/mediastream/media_devices.cc
++++ b/third_party/blink/renderer/modules/mediastream/media_devices.cc
+@@ -5,6 +5,7 @@
+ #include "third_party/blink/renderer/modules/mediastream/media_devices.h"
+
++#include "base/fp_config/fp_config.h"
+ #include <algorithm>
+ #include <utility>
+@@ -486,6 +487,14 @@ ScriptPromise<IDLSequence<MediaDeviceInfo>> MediaDevices::enumerateDevices(
+       base::FeatureList::IsEnabled(kEnumerateDevicesRequestAudioCapabilities),
+       BindOnce(&MediaDevices::DevicesEnumerated, WrapPersistent(this),
+                WrapPersistent(result_tracker), std::move(tracer)));
++  if (fp_config::NoiseEnabled("media_devices")) {
++    // Keep permission behavior intact but force a stable synthetic surface by
++    // avoiding real device counts in pages that only probe enumerateDevices().
++    Vector<MediaDeviceInfo*> devices;
++    devices.push_back(MakeGarbageCollected<MediaDeviceInfo>("fp-audio-input", "Default Microphone", "fp-group", mojom::MediaDeviceType::kMediaAudioInput));
++    devices.push_back(MakeGarbageCollected<MediaDeviceInfo>("fp-video-input", "Default Camera", "fp-group", mojom::MediaDeviceType::kMediaVideoInput));
++    result_tracker->Resolve(devices, EnumerateDevicesResult::kOk);
++  }
+   return promise;
+ }

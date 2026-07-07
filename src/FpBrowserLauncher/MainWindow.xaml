@@ -39,53 +39,114 @@
             </DockPanel>
 
             <Border Grid.Column="2" Padding="12" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="120" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Text="Profile ID" VerticalAlignment="Center" />
-                    <TextBox Grid.Column="1" Text="{Binding ProfileId, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBlock Grid.Row="1" Text="显示名称" VerticalAlignment="Center" Margin="0,8,0,0" />
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,8,0,0" />
-
-                    <TextBlock Grid.Row="2" Text="代理 Host" VerticalAlignment="Center" Margin="0,8,0,0" />
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ProxyHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,8,0,0" />
-
-                    <TextBlock Grid.Row="3" Text="代理 Port" VerticalAlignment="Center" Margin="0,8,0,0" />
-                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ProxyPortText, UpdateSourceTrigger=PropertyChanged}" Margin="0,8,0,0" />
-
-                    <TextBlock Grid.Row="4" Text="认证" VerticalAlignment="Top" Margin="0,8,0,0" />
-                    <Grid Grid.Row="4" Grid.Column="1" Margin="0,8,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="8" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding ProxyUsername, UpdateSourceTrigger=PropertyChanged}" ToolTip="用户名" />
-                        <TextBox Grid.Column="2" Text="{Binding ProxyPassword, UpdateSourceTrigger=PropertyChanged}" ToolTip="密码" />
-                    </Grid>
-
-                    <TextBox Grid.Row="5" Grid.ColumnSpan="2" Text="{Binding SelectedProfileDetails, Mode=OneWay}" Margin="0,16,0,0"
-                             IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
-
-                    <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
                         <Button Content="创建/更新并生成" Command="{Binding SaveProfileCommand}" Padding="12,4" />
                         <Button Content="启动" Command="{Binding LaunchProfileCommand}" Margin="8,0,0,0" Padding="12,4" />
                         <Button Content="停止" Command="{Binding StopProfileCommand}" Margin="8,0,0,0" Padding="12,4" />
                     </StackPanel>
-                </Grid>
+
+                    <TabControl>
+                        <TabItem Header="基础">
+                            <Grid Margin="8">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Profile ID" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="1" Text="{Binding ProfileId, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBlock Grid.Row="1" Text="显示名称" VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="2" Text="代理 Host" VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding ProxyHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="3" Text="代理 Port" VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding ProxyPortText, UpdateSourceTrigger=PropertyChanged}" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="4" Text="代理出口 IP" VerticalAlignment="Center" Margin="0,8,0,0" />
+                                <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding ProxyPublicIp, UpdateSourceTrigger=PropertyChanged}" Margin="0,8,0,0" />
+                                <TextBlock Grid.Row="5" Text="认证" VerticalAlignment="Top" Margin="0,8,0,0" />
+                                <Grid Grid.Row="5" Grid.Column="1" Margin="0,8,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="8" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding ProxyUsername, UpdateSourceTrigger=PropertyChanged}" ToolTip="用户名" />
+                                    <TextBox Grid.Column="2" Text="{Binding ProxyPassword, UpdateSourceTrigger=PropertyChanged}" ToolTip="密码" />
+                                </Grid>
+                                <TextBox Grid.Row="6" Grid.ColumnSpan="2" Text="{Binding SelectedProfileDetails, Mode=OneWay}" Margin="0,16,0,0" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                            </Grid>
+                        </TabItem>
+
+                        <TabItem Header="指纹设置">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <Grid Margin="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Text="WebRTC" />
+                                    <TextBox Grid.Column="1" Text="{Binding WebRtcMode, UpdateSourceTrigger=PropertyChanged}" ToolTip="real/disabled/replace/proxy_udp/forward" />
+                                    <TextBlock Grid.Row="1" Text="时区" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="130" Text="{Binding TimezoneMode}" /><TextBox Width="220" Margin="8,0,0,0" Text="{Binding TimezoneValue}" /></StackPanel>
+                                    <TextBlock Grid.Row="2" Text="地理位置" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="90" Text="{Binding GeolocationMode}" /><TextBox Width="110" Margin="8,0,0,0" Text="{Binding GeolocationLatitude}" ToolTip="纬度" /><TextBox Width="110" Margin="8,0,0,0" Text="{Binding GeolocationLongitude}" ToolTip="经度" /><TextBox Width="80" Margin="8,0,0,0" Text="{Binding GeolocationAccuracy}" ToolTip="精度米" /></StackPanel>
+                                    <TextBlock Grid.Row="3" Text="授权策略" Margin="0,8,0,0" />
+                                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding GeolocationPromptPolicy}" Margin="0,8,0,0" ToolTip="ask_every_time/always_allow" />
+                                    <TextBlock Grid.Row="4" Text="语言" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="130" Text="{Binding LanguageMode}" /><TextBox Width="300" Margin="8,0,0,0" Text="{Binding LanguagesText}" ToolTip="逗号分隔，如 en-US,en" /></StackPanel>
+                                    <TextBlock Grid.Row="5" Text="界面语言" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="130" Text="{Binding UiLanguageMode}" /><TextBox Width="160" Margin="8,0,0,0" Text="{Binding UiLanguageValue}" /></StackPanel>
+                                    <TextBlock Grid.Row="6" Text="分辨率" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="6" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="130" Text="{Binding ResolutionMode}" /><TextBox Width="90" Margin="8,0,0,0" Text="{Binding ResolutionWidth}" /><TextBox Width="90" Margin="8,0,0,0" Text="{Binding ResolutionHeight}" /></StackPanel>
+                                    <TextBlock Grid.Row="7" Text="字体" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="7" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="100" Text="{Binding FontsMode}" /><TextBox Width="360" Margin="8,0,0,0" Text="{Binding FontsText}" /></StackPanel>
+                                    <TextBlock Grid.Row="8" Text="硬件噪声" Margin="0,8,0,0" />
+                                    <WrapPanel Grid.Row="8" Grid.Column="1" Margin="0,8,0,0"><CheckBox Content="Canvas" IsChecked="{Binding CanvasNoise}" Margin="0,0,12,0" /><CheckBox Content="WebGL图像" IsChecked="{Binding WebGlImageNoise}" Margin="0,0,12,0" /><CheckBox Content="AudioContext" IsChecked="{Binding AudioContextNoise}" Margin="0,0,12,0" /><CheckBox Content="媒体设备" IsChecked="{Binding MediaDevicesNoise}" Margin="0,0,12,0" /><CheckBox Content="ClientRects" IsChecked="{Binding ClientRectsNoise}" Margin="0,0,12,0" /><CheckBox Content="SpeechVoices" IsChecked="{Binding SpeechVoicesNoise}" /></WrapPanel>
+                                    <TextBlock Grid.Row="9" Text="WebGL" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="9" Grid.Column="1" Margin="0,8,0,0"><TextBox Text="{Binding WebGlMode}" /><TextBox Margin="0,6,0,0" Text="{Binding WebGlVendor}" /><TextBox Margin="0,6,0,0" Text="{Binding WebGlRenderer}" /></StackPanel>
+                                    <TextBlock Grid.Row="10" Text="WebGPU/CPU/RAM" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="10" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="130" Text="{Binding WebGpuMode}" /><TextBox Width="80" Margin="8,0,0,0" Text="{Binding CpuCores}" /><TextBox Width="80" Margin="8,0,0,0" Text="{Binding DeviceMemoryGb}" /></StackPanel>
+                                    <TextBlock Grid.Row="11" Text="设备/MAC" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="11" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="220" Text="{Binding DeviceName}" /><TextBox Width="220" Margin="8,0,0,0" Text="{Binding MacAddress}" /></StackPanel>
+                                    <TextBlock Grid.Row="12" Text="DNT/端口" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="12" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="100" Text="{Binding DoNotTrack}" /><CheckBox Content="端口扫描保护" IsChecked="{Binding PortScanProtectionEnabled}" Margin="8,0,0,0" /><TextBox Width="220" Margin="8,0,0,0" Text="{Binding AllowedPorts}" ToolTip="允许端口，逗号分隔" /></StackPanel>
+                                    <TextBlock Grid.Row="13" Text="硬件加速/TLS" Margin="0,8,0,0" />
+                                    <StackPanel Grid.Row="13" Grid.Column="1" Orientation="Horizontal" Margin="0,8,0,0"><TextBox Width="130" Text="{Binding HardwareAcceleration}" /><TextBox Width="180" Margin="8,0,0,0" Text="{Binding TlsFingerprintMode}" /></StackPanel>
+                                    <TextBlock Grid.Row="14" Text="启动参数" Margin="0,8,0,0" />
+                                    <TextBox Grid.Row="14" Grid.Column="1" Height="80" Margin="0,8,0,0" Text="{Binding ExtraFlagsText}" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                                </Grid>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
             </Border>
         </Grid>
 

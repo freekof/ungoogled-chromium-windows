@@ -61,6 +61,7 @@ public sealed class FingerprintGenerator
             Timezone = new ModeValue { Mode = "based_on_ip", Value = sample.Timezone },
             Geolocation = new GeolocationValue { Mode = "based_on_ip", PromptPolicy = "ask_every_time" },
             Language = new ModeValue { Mode = "based_on_ip", Value = sample.Language },
+            Languages = [sample.Language],
             UiLanguage = new ModeValue { Mode = "based_on_language", Value = sample.Language },
             Resolution = new ResolutionValue { Mode = "based_on_ua", Width = resolution.Width, Height = resolution.Height },
             Fonts = new FontsValue { Mode = "custom", List = sample.Fonts.ToList() },

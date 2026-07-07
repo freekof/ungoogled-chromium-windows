@@ -48,7 +48,12 @@ public sealed partial class ProfileStore
         return summaries;
     }
 
-    public async Task CreateOrUpdateAsync(string profileId, string displayName, ProxyConfig proxy, CancellationToken cancellationToken = default)
+    public async Task CreateOrUpdateAsync(
+        string profileId,
+        string displayName,
+        ProxyConfig proxy,
+        Action<FingerprintConfig>? configureFingerprint = null,
+        CancellationToken cancellationToken = default)
     {
         profileId = ValidateProfileId(profileId);
         var directory = GetProfileDirectory(profileId);
@@ -66,6 +71,8 @@ public sealed partial class ProfileStore
         };
 
         var fingerprint = _fingerprintGenerator.Generate(profileId);
+        fingerprint.Proxy = proxy;
+        configureFingerprint?.Invoke(fingerprint);
         await JsonFile.WriteAsync(GetMetadataPath(profileId), metadata, cancellationToken);
         await JsonFile.WriteAsync(GetProxyPath(profileId), proxy, cancellationToken);
         await JsonFile.WriteAsync(GetFingerprintPath(profileId), fingerprint, cancellationToken);

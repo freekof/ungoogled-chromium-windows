@@ -21,6 +21,44 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _proxyPortText = "1080";
     private string _proxyUsername = string.Empty;
     private string _proxyPassword = string.Empty;
+    private string _proxyPublicIp = string.Empty;
+    private string _webRtcMode = "proxy_udp";
+    private string _timezoneMode = "based_on_ip";
+    private string _timezoneValue = "Asia/Shanghai";
+    private string _geolocationMode = "based_on_ip";
+    private string _geolocationPromptPolicy = "ask_every_time";
+    private string _geolocationLatitude = string.Empty;
+    private string _geolocationLongitude = string.Empty;
+    private string _geolocationAccuracy = "1000";
+    private string _languageMode = "based_on_ip";
+    private string _languagesText = "zh-CN";
+    private string _uiLanguageMode = "based_on_language";
+    private string _uiLanguageValue = "zh-CN";
+    private string _resolutionMode = "based_on_ua";
+    private string _resolutionWidth = "1920";
+    private string _resolutionHeight = "1080";
+    private string _fontsMode = "custom";
+    private string _fontsText = "Arial, Microsoft YaHei, SimSun, Calibri";
+    private bool _canvasNoise;
+    private bool _webGlImageNoise;
+    private bool _audioContextNoise = true;
+    private bool _mediaDevicesNoise = true;
+    private bool _clientRectsNoise = true;
+    private bool _speechVoicesNoise = true;
+    private string _webGlMode = "custom";
+    private string _webGlVendor = "Google Inc. (Intel)";
+    private string _webGlRenderer = "ANGLE (Intel, Intel(R) HD Graphics Direct3D11 vs_5_0 ps_5_0)";
+    private string _webGpuMode = "based_on_webgl";
+    private string _cpuCores = "8";
+    private string _deviceMemoryGb = "8";
+    private string _deviceName = "DESKTOP-PROFILE";
+    private string _macAddress = "00-50-43-3C-49-4B";
+    private string _doNotTrack = "default";
+    private bool _portScanProtectionEnabled = true;
+    private string _allowedPorts = string.Empty;
+    private string _hardwareAcceleration = "default";
+    private string _tlsFingerprintMode = "chrome_default";
+    private string _extraFlagsText = "--disable-notifications";
     private string _statusMessage = "准备就绪。";
     private ProfileSummary? _selectedProfile;
 
@@ -98,6 +136,45 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         get => _proxyPassword;
         set => SetField(ref _proxyPassword, value);
     }
+
+    public string ProxyPublicIp { get => _proxyPublicIp; set => SetField(ref _proxyPublicIp, value); }
+    public string WebRtcMode { get => _webRtcMode; set => SetField(ref _webRtcMode, value); }
+    public string TimezoneMode { get => _timezoneMode; set => SetField(ref _timezoneMode, value); }
+    public string TimezoneValue { get => _timezoneValue; set => SetField(ref _timezoneValue, value); }
+    public string GeolocationMode { get => _geolocationMode; set => SetField(ref _geolocationMode, value); }
+    public string GeolocationPromptPolicy { get => _geolocationPromptPolicy; set => SetField(ref _geolocationPromptPolicy, value); }
+    public string GeolocationLatitude { get => _geolocationLatitude; set => SetField(ref _geolocationLatitude, value); }
+    public string GeolocationLongitude { get => _geolocationLongitude; set => SetField(ref _geolocationLongitude, value); }
+    public string GeolocationAccuracy { get => _geolocationAccuracy; set => SetField(ref _geolocationAccuracy, value); }
+    public string LanguageMode { get => _languageMode; set => SetField(ref _languageMode, value); }
+    public string LanguagesText { get => _languagesText; set => SetField(ref _languagesText, value); }
+    public string UiLanguageMode { get => _uiLanguageMode; set => SetField(ref _uiLanguageMode, value); }
+    public string UiLanguageValue { get => _uiLanguageValue; set => SetField(ref _uiLanguageValue, value); }
+    public string ResolutionMode { get => _resolutionMode; set => SetField(ref _resolutionMode, value); }
+    public string ResolutionWidth { get => _resolutionWidth; set => SetField(ref _resolutionWidth, value); }
+    public string ResolutionHeight { get => _resolutionHeight; set => SetField(ref _resolutionHeight, value); }
+    public string FontsMode { get => _fontsMode; set => SetField(ref _fontsMode, value); }
+    public string FontsText { get => _fontsText; set => SetField(ref _fontsText, value); }
+    public bool CanvasNoise { get => _canvasNoise; set => SetField(ref _canvasNoise, value); }
+    public bool WebGlImageNoise { get => _webGlImageNoise; set => SetField(ref _webGlImageNoise, value); }
+    public bool AudioContextNoise { get => _audioContextNoise; set => SetField(ref _audioContextNoise, value); }
+    public bool MediaDevicesNoise { get => _mediaDevicesNoise; set => SetField(ref _mediaDevicesNoise, value); }
+    public bool ClientRectsNoise { get => _clientRectsNoise; set => SetField(ref _clientRectsNoise, value); }
+    public bool SpeechVoicesNoise { get => _speechVoicesNoise; set => SetField(ref _speechVoicesNoise, value); }
+    public string WebGlMode { get => _webGlMode; set => SetField(ref _webGlMode, value); }
+    public string WebGlVendor { get => _webGlVendor; set => SetField(ref _webGlVendor, value); }
+    public string WebGlRenderer { get => _webGlRenderer; set => SetField(ref _webGlRenderer, value); }
+    public string WebGpuMode { get => _webGpuMode; set => SetField(ref _webGpuMode, value); }
+    public string CpuCores { get => _cpuCores; set => SetField(ref _cpuCores, value); }
+    public string DeviceMemoryGb { get => _deviceMemoryGb; set => SetField(ref _deviceMemoryGb, value); }
+    public string DeviceName { get => _deviceName; set => SetField(ref _deviceName, value); }
+    public string MacAddress { get => _macAddress; set => SetField(ref _macAddress, value); }
+    public string DoNotTrack { get => _doNotTrack; set => SetField(ref _doNotTrack, value); }
+    public bool PortScanProtectionEnabled { get => _portScanProtectionEnabled; set => SetField(ref _portScanProtectionEnabled, value); }
+    public string AllowedPorts { get => _allowedPorts; set => SetField(ref _allowedPorts, value); }
+    public string HardwareAcceleration { get => _hardwareAcceleration; set => SetField(ref _hardwareAcceleration, value); }
+    public string TlsFingerprintMode { get => _tlsFingerprintMode; set => SetField(ref _tlsFingerprintMode, value); }
+    public string ExtraFlagsText { get => _extraFlagsText; set => SetField(ref _extraFlagsText, value); }
 
     public string StatusMessage
     {
@@ -190,12 +267,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             Host = ProxyHost.Trim(),
             Port = port,
             Username = ProxyUsername.Trim(),
-            Password = ProxyPassword
+            Password = ProxyPassword,
+            PublicIp = ProxyPublicIp.Trim()
         };
 
         try
         {
-            await _profileStore.CreateOrUpdateAsync(ProfileId, DisplayName, proxy);
+            await _profileStore.CreateOrUpdateAsync(ProfileId, DisplayName, proxy, ApplyFingerprintSettings);
             StatusMessage = $"Profile {ProfileId} 已保存并生成 fingerprint.json。";
             await RefreshAsync();
         }
@@ -247,6 +325,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     {
         var metadata = await _profileStore.LoadMetadataAsync(profileId);
         var proxy = await _profileStore.LoadProxyAsync(profileId);
+        var fingerprint = await _profileStore.LoadFingerprintAsync(profileId);
 
         ProfileId = profileId;
         DisplayName = metadata?.DisplayName ?? profileId;
@@ -256,10 +335,102 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             ProxyPortText = proxy.Port.ToString();
             ProxyUsername = proxy.Username;
             ProxyPassword = proxy.Password;
+            ProxyPublicIp = proxy.PublicIp;
+        }
+
+        if (fingerprint is not null)
+        {
+            LoadFingerprintSettings(fingerprint);
         }
 
         OnPropertyChanged(nameof(SelectedProfileDetails));
     }
+
+    private void ApplyFingerprintSettings(FingerprintConfig fingerprint)
+    {
+        var languages = SplitCsv(LanguagesText);
+        fingerprint.WebRtc = new ModeValue { Mode = WebRtcMode.Trim() };
+        fingerprint.Timezone = new ModeValue { Mode = TimezoneMode.Trim(), Value = EmptyToNull(TimezoneValue) };
+        fingerprint.Geolocation = new GeolocationValue
+        {
+            Mode = GeolocationMode.Trim(),
+            PromptPolicy = GeolocationPromptPolicy.Trim(),
+            Latitude = ParseNullableDouble(GeolocationLatitude),
+            Longitude = ParseNullableDouble(GeolocationLongitude),
+            Accuracy = ParseNullableDouble(GeolocationAccuracy)
+        };
+        fingerprint.Language = new ModeValue { Mode = LanguageMode.Trim(), Value = languages.FirstOrDefault() ?? EmptyToNull(LanguagesText) };
+        fingerprint.Languages = languages;
+        fingerprint.UiLanguage = new ModeValue { Mode = UiLanguageMode.Trim(), Value = EmptyToNull(UiLanguageValue) };
+        fingerprint.Resolution = new ResolutionValue { Mode = ResolutionMode.Trim(), Width = ParseIntOrDefault(ResolutionWidth, 1920), Height = ParseIntOrDefault(ResolutionHeight, 1080) };
+        fingerprint.Fonts = new FontsValue { Mode = FontsMode.Trim(), List = SplitCsv(FontsText) };
+        fingerprint.NoiseToggles = new NoiseToggles { Canvas = CanvasNoise, WebGlImage = WebGlImageNoise, AudioContext = AudioContextNoise, MediaDevices = MediaDevicesNoise, ClientRects = ClientRectsNoise, SpeechVoices = SpeechVoicesNoise };
+        fingerprint.WebGl = new WebGlValue { Mode = WebGlMode.Trim(), Vendor = WebGlVendor.Trim(), Renderer = WebGlRenderer.Trim() };
+        fingerprint.WebGpu = new ModeValue { Mode = WebGpuMode.Trim() };
+        fingerprint.CpuCores = ParseIntOrDefault(CpuCores, 8);
+        fingerprint.DeviceMemoryGb = ParseIntOrDefault(DeviceMemoryGb, 8);
+        fingerprint.DeviceName = DeviceName.Trim();
+        fingerprint.MacAddress = MacAddress.Trim();
+        fingerprint.DoNotTrack = DoNotTrack.Trim();
+        fingerprint.PortScanProtection = new PortScanProtection { Enabled = PortScanProtectionEnabled, AllowedPorts = SplitCsv(AllowedPorts).Select(port => ParseIntOrDefault(port, -1)).Where(port => port > 0).ToList() };
+        fingerprint.HardwareAcceleration = HardwareAcceleration.Trim();
+        fingerprint.TlsFingerprint = new ModeValue { Mode = TlsFingerprintMode.Trim() };
+        fingerprint.ExtraFlags = SplitLines(ExtraFlagsText);
+    }
+
+    private void LoadFingerprintSettings(FingerprintConfig fingerprint)
+    {
+        WebRtcMode = fingerprint.WebRtc.Mode;
+        TimezoneMode = fingerprint.Timezone.Mode;
+        TimezoneValue = fingerprint.Timezone.Value ?? string.Empty;
+        GeolocationMode = fingerprint.Geolocation.Mode;
+        GeolocationPromptPolicy = fingerprint.Geolocation.PromptPolicy;
+        GeolocationLatitude = fingerprint.Geolocation.Latitude?.ToString() ?? string.Empty;
+        GeolocationLongitude = fingerprint.Geolocation.Longitude?.ToString() ?? string.Empty;
+        GeolocationAccuracy = fingerprint.Geolocation.Accuracy?.ToString() ?? string.Empty;
+        LanguageMode = fingerprint.Language.Mode;
+        var languageList = fingerprint.Languages.Count > 0
+            ? fingerprint.Languages
+            : new List<string> { fingerprint.Language.Value ?? string.Empty };
+        LanguagesText = string.Join(", ", languageList);
+        UiLanguageMode = fingerprint.UiLanguage.Mode;
+        UiLanguageValue = fingerprint.UiLanguage.Value ?? string.Empty;
+        ResolutionMode = fingerprint.Resolution.Mode;
+        ResolutionWidth = fingerprint.Resolution.Width.ToString();
+        ResolutionHeight = fingerprint.Resolution.Height.ToString();
+        FontsMode = fingerprint.Fonts.Mode;
+        FontsText = string.Join(", ", fingerprint.Fonts.List);
+        CanvasNoise = fingerprint.NoiseToggles.Canvas;
+        WebGlImageNoise = fingerprint.NoiseToggles.WebGlImage;
+        AudioContextNoise = fingerprint.NoiseToggles.AudioContext;
+        MediaDevicesNoise = fingerprint.NoiseToggles.MediaDevices;
+        ClientRectsNoise = fingerprint.NoiseToggles.ClientRects;
+        SpeechVoicesNoise = fingerprint.NoiseToggles.SpeechVoices;
+        WebGlMode = fingerprint.WebGl.Mode;
+        WebGlVendor = fingerprint.WebGl.Vendor;
+        WebGlRenderer = fingerprint.WebGl.Renderer;
+        WebGpuMode = fingerprint.WebGpu.Mode;
+        CpuCores = fingerprint.CpuCores.ToString();
+        DeviceMemoryGb = fingerprint.DeviceMemoryGb.ToString();
+        DeviceName = fingerprint.DeviceName;
+        MacAddress = fingerprint.MacAddress;
+        DoNotTrack = fingerprint.DoNotTrack;
+        PortScanProtectionEnabled = fingerprint.PortScanProtection.Enabled;
+        AllowedPorts = string.Join(", ", fingerprint.PortScanProtection.AllowedPorts);
+        HardwareAcceleration = fingerprint.HardwareAcceleration;
+        TlsFingerprintMode = fingerprint.TlsFingerprint.Mode;
+        ExtraFlagsText = string.Join(Environment.NewLine, fingerprint.ExtraFlags);
+    }
+
+    private static string? EmptyToNull(string value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static int ParseIntOrDefault(string value, int defaultValue) => int.TryParse(value.Trim(), out var parsed) ? parsed : defaultValue;
+
+    private static double? ParseNullableDouble(string value) => double.TryParse(value.Trim(), out var parsed) ? parsed : null;
+
+    private static List<string> SplitCsv(string value) => value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+
+    private static List<string> SplitLines(string value) => value.Split(new[] { "\r\n", "\n" }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {

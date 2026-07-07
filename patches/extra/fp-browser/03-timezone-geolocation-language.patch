@@ -22,8 +22,14 @@
 @@ -42,6 +47,12 @@ const Vector<AtomicString>& NavigatorLanguage::languages() {
      EnsureUpdatedLanguage();
    }
-+  if (std::optional<std::string> language =
-+          fp_config::GetString("language.value")) {
++  std::vector<std::string> configured_languages = fp_config::GetStringList("languages");
++  if (!configured_languages.empty()) {
++    languages_.clear();
++    for (const std::string& language : configured_languages) {
++      languages_.push_back(AtomicString::FromUTF8(language));
++    }
++  } else if (std::optional<std::string> language =
++                 fp_config::GetString("language.value")) {
 +    languages_.clear();
 +    languages_.push_back(AtomicString::FromUTF8(*language));
 +  }

@@ -38,6 +38,40 @@ public sealed class ProfileStoreTests
         }
     }
 
+    [Fact]
+    public async Task CreateOrUpdateAsync_SyncsProxyIntoFingerprintJson()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var store = new ProfileStore(root);
+            var proxy = new ProxyConfig
+            {
+                Host = "10.0.0.2",
+                Port = 2080,
+                Username = "user",
+                Password = "pass",
+                PublicIp = "203.0.113.10"
+            };
+
+            await store.CreateOrUpdateAsync("p001", "Profile 001", proxy);
+
+            var fingerprint = await store.LoadFingerprintAsync("p001");
+            Assert.NotNull(fingerprint);
+            Assert.NotNull(fingerprint.Proxy);
+            Assert.Equal("socks5", fingerprint.Proxy.Type);
+            Assert.Equal("10.0.0.2", fingerprint.Proxy.Host);
+            Assert.Equal(2080, fingerprint.Proxy.Port);
+            Assert.Equal("user", fingerprint.Proxy.Username);
+            Assert.Equal("pass", fingerprint.Proxy.Password);
+            Assert.Equal("203.0.113.10", fingerprint.Proxy.PublicIp);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Theory]
     [InlineData("../bad")]
     [InlineData("bad space")]

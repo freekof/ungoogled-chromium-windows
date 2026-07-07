@@ -19,6 +19,9 @@ public sealed class ProxyConfig
     [JsonPropertyName("password")]
     public string Password { get; set; } = string.Empty;
 
+    [JsonPropertyName("public_ip")]
+    public string PublicIp { get; set; } = string.Empty;
+
     [JsonIgnore]
     public bool HasCredentials => !string.IsNullOrWhiteSpace(Username) || !string.IsNullOrWhiteSpace(Password);
 

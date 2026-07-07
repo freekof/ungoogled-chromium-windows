@@ -25,6 +25,9 @@ public sealed class FingerprintConfig
     [JsonPropertyName("language")]
     public ModeValue Language { get; set; } = new() { Mode = "based_on_ip", Value = "zh-CN" };
 
+    [JsonPropertyName("languages")]
+    public List<string> Languages { get; set; } = ["zh-CN"];
+
     [JsonPropertyName("ui_language")]
     public ModeValue UiLanguage { get; set; } = new() { Mode = "based_on_language", Value = "zh-CN" };
 
@@ -67,6 +70,9 @@ public sealed class FingerprintConfig
     [JsonPropertyName("tls_fingerprint")]
     public ModeValue TlsFingerprint { get; set; } = new() { Mode = "chrome_default" };
 
+    [JsonPropertyName("proxy")]
+    public ProxyConfig Proxy { get; set; } = new();
+
     [JsonPropertyName("extra_flags")]
     public List<string> ExtraFlags { get; set; } = ["--disable-notifications"];
 
@@ -91,6 +97,18 @@ public sealed class GeolocationValue
 
     [JsonPropertyName("prompt_policy")]
     public string PromptPolicy { get; set; } = "ask_every_time";
+
+    [JsonPropertyName("latitude")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? Latitude { get; set; }
+
+    [JsonPropertyName("longitude")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? Longitude { get; set; }
+
+    [JsonPropertyName("accuracy")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? Accuracy { get; set; }
 }
 
 public sealed class ResolutionValue

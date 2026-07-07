@@ -40,8 +40,42 @@ public sealed class ChromiumLauncher
             "--disable-background-networking"
         };
 
+        AddFingerprintMappedFlags(args, fingerprint);
+
         args.AddRange(FilterConflictingFlags(fingerprint.ExtraFlags));
         return args;
+    }
+
+    private static void AddFingerprintMappedFlags(List<string> args, FingerprintConfig fingerprint)
+    {
+        var uiLanguage = fingerprint.UiLanguage.Value;
+        if (!string.IsNullOrWhiteSpace(uiLanguage))
+        {
+            args.Add($"--lang={uiLanguage.Trim()}");
+        }
+
+        if (fingerprint.Resolution.Width > 0 && fingerprint.Resolution.Height > 0)
+        {
+            args.Add($"--window-size={fingerprint.Resolution.Width},{fingerprint.Resolution.Height}");
+        }
+
+        if (string.Equals(fingerprint.HardwareAcceleration, "disabled", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(fingerprint.HardwareAcceleration, "off", StringComparison.OrdinalIgnoreCase))
+        {
+            args.Add("--disable-gpu");
+        }
+
+        if (string.Equals(fingerprint.WebRtc.Mode, "proxy_udp", StringComparison.OrdinalIgnoreCase))
+        {
+            args.Add("--force-webrtc-ip-handling-policy=disable_non_proxied_udp");
+            args.Add("--disable-quic");
+        }
+
+        if (string.Equals(fingerprint.DoNotTrack, "enabled", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(fingerprint.DoNotTrack, "on", StringComparison.OrdinalIgnoreCase))
+        {
+            args.Add("--enable-do-not-track");
+        }
     }
 
     public static IEnumerable<string> FilterConflictingFlags(IEnumerable<string> extraFlags)
