@@ -1,4 +1,5 @@
 using System.IO;
+using FpBrowserLauncher.Models;
 using FpBrowserLauncher.Services;
 using Xunit;
 
