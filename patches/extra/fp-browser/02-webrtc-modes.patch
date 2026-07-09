@@ -23,7 +23,7 @@
  
    // Count number of PeerConnections that could potentially be impacted by CSP
    auto* content_security_policy = context->GetContentSecurityPolicy();
-@@ -497,6 +504,12 @@ webrtc::PeerConnectionInterface::RTCConfiguration ParseConfiguration(
+@@ -497,6 +504,13 @@ webrtc::PeerConnectionInterface::RTCConfiguration ParseConfiguration(
  
    web_configuration.ice_candidate_pool_size =
        configuration->iceCandidatePoolSize();
@@ -39,14 +39,14 @@
      UseCounter::Count(context, WebFeature::kRTCMaxAudioBufferSize);
 --- a/third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.cc
 +++ b/third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
  #include "third_party/webrtc/api/jsep_ice_candidate.h"
  
-@@ -23,7 +24,11 @@ RTCIceCandidatePlatform::RTCIceCandidatePlatform(
+@@ -23,9 +24,13 @@ RTCIceCandidatePlatform::RTCIceCandidatePlatform(
      String username_fragment,
      String url)
      : candidate_(candidate),
@@ -62,13 +62,13 @@
  }
 --- a/content/renderer/renderer_blink_platform_impl.cc
 +++ b/content/renderer/renderer_blink_platform_impl.cc
-@@ -7,6 +7,7 @@
+@@ -7,4 +7,5 @@
  
 +#include "base/fp_config/fp_config.h"
  #include "base/command_line.h"
  #include "base/feature_list.h"
  #include "base/functional/bind.h"
-@@ -1450,6 +1451,10 @@ blink::WebString RendererBlinkPlatformImpl::GetWebRTCRendererPreferences(
+@@ -1450,5 +1451,8 @@ blink::WebString RendererBlinkPlatformImpl::GetWebRTCRendererPreferences(
    const blink::RendererPreferences& renderer_preferences =
        render_frame->GetRendererPreferences();
 +  if (fp_config::WebRtcProxyUdp()) {

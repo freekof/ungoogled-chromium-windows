@@ -2,7 +2,7 @@
 
 --- a/chrome/common/chrome_switches.cc
 +++ b/chrome/common/chrome_switches.cc
-@@ -371,6 +371,9 @@ const char kForceFirstRun[] = "force-first-run";
+@@ -371,5 +371,8 @@ const char kForceFirstRun[] = "force-first-run";
  const char kForceWhatsNew[] = "force-whats-new";
  
 +// Specifies the path to the fingerprint configuration JSON file.
@@ -23,7 +23,7 @@
  #if !BUILDFLAG(IS_ANDROID)
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
-@@ -3566,6 +3567,7 @@ void ChromeContentBrowserClient::AppendExtraCommandLineSwitches(
+@@ -3566,4 +3567,5 @@ void ChromeContentBrowserClient::AppendExtraCommandLineSwitches(
    static const char* const kCommonSwitchNames[] = {
 +      switches::kFpConfig,
        embedder_support::kUserAgent,
@@ -31,7 +31,7 @@
    };
 --- /dev/null
 +++ b/base/fp_config/fp_config.h
-@@ -0,0 +1,313 @@
+@@ -0,0 +1,322 @@
 +// Copyright 2026 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -42,6 +42,7 @@
 +#include <algorithm>
 +#include <cmath>
 +#include <cstdint>
++#include <initializer_list>
 +#include <optional>
 +#include <string>
 +#include <string_view>
@@ -188,6 +189,48 @@
 +inline bool ModeIs(std::string_view path, std::string_view mode) {
 +  std::optional<std::string> configured = GetString(path);
 +  return configured && base::EqualsCaseInsensitiveASCII(*configured, mode);
++}
++
++inline bool ModeIsAny(std::string_view path,
++                      std::initializer_list<std::string_view> modes) {
++  std::optional<std::string> configured = GetString(path);
++  if (!configured) {
++    return false;
++  }
++  for (std::string_view mode : modes) {
++    if (base::EqualsCaseInsensitiveASCII(*configured, mode)) {
++      return true;
++    }
++  }
++  return false;
++}
++
++inline bool ModeAllowsOverride(std::string_view path) {
++  std::optional<std::string> configured = GetString(path);
++  if (!configured || configured->empty()) {
++    return true;
++  }
++  return !ModeIsAny(path, {"real", "default", "disabled", "disable"});
++}
++
++inline std::optional<std::string> UserAgent() {
++  std::optional<std::string> user_agent = GetString("user_agent");
++  if (!user_agent || user_agent->empty()) {
++    return std::nullopt;
++  }
++  return user_agent;
++}
++
++inline bool HardwareAccelerationDisabled() {
++  return ModeIsAny("hardware_acceleration", {"disabled", "disable", "off"});
++}
++
++inline bool GeolocationDisabled() {
++  return ModeIsAny("geolocation.mode", {"disabled", "disable"});
++}
++
++inline bool GeolocationAlwaysAllow() {
++  return ModeIs("geolocation.prompt_policy", "always_allow");
 +}
 +
 +inline bool WebRtcDisabled() {

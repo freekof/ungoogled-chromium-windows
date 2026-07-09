@@ -1,0 +1,54 @@
+# Fingerprint browser: user agent and hardware acceleration completion.
+
+--- a/third_party/blink/renderer/core/frame/navigator_id.cc
++++ b/third_party/blink/renderer/core/frame/navigator_id.cc
+@@ -5,4 +5,5 @@
+ #include "third_party/blink/renderer/core/frame/navigator_id.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "third_party/blink/public/common/user_agent/user_agent_metadata.h"
+ #include "third_party/blink/renderer/core/frame/local_dom_window.h"
+@@ -52,4 +53,7 @@ String NavigatorID::userAgent() const {
+   if (!DomWindow())
+     return String();
++  if (std::optional<std::string> user_agent = fp_config::UserAgent()) {
++    return String::FromUTF8(*user_agent);
++  }
+   return DomWindow()->GetFrame()->Loader().UserAgent();
+ }
+--- a/components/embedder_support/user_agent_utils.cc
++++ b/components/embedder_support/user_agent_utils.cc
+@@ -5,4 +5,5 @@
+ #include "components/embedder_support/user_agent_utils.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "base/command_line.h"
+ #include "base/strings/strcat.h"
+@@ -214,5 +215,8 @@ std::string GetUserAgent() {
+   std::string product = GetProduct();
+   if (base::CommandLine::ForCurrentProcess()->HasSwitch(switches::kUserAgent))
+     return base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(switches::kUserAgent);
++  if (std::optional<std::string> user_agent = fp_config::UserAgent()) {
++    return *user_agent;
++  }
+   return BuildUserAgentFromProduct(product);
+ }
+--- a/chrome/browser/gpu/chrome_browser_main_extra_parts_gpu.cc
++++ b/chrome/browser/gpu/chrome_browser_main_extra_parts_gpu.cc
+@@ -5,5 +5,7 @@
+ #include "chrome/browser/gpu/chrome_browser_main_extra_parts_gpu.h"
+ 
++#include "base/command_line.h"
++#include "base/fp_config/fp_config.h"
+ #include "build/build_config.h"
+ #include "content/public/browser/gpu_data_manager.h"
+ #include "gpu/config/gpu_switches.h"
+@@ -56,4 +58,8 @@ void ChromeBrowserMainExtraPartsGpu::PreProfileInit() {
+   // Do GPU process initialization before profiles are created so GPU-related
+   // switches are stable for renderer processes.
++  if (fp_config::HardwareAccelerationDisabled()) {
++    base::CommandLine::ForCurrentProcess()->AppendSwitch(
++        switches::kDisableGpu);
++  }
+   content::GpuDataManager::GetInstance()->Initialize();
+ }

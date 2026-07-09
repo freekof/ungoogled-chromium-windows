@@ -2,14 +2,14 @@
 
 --- a/chrome/browser/net/proxy_config_monitor.cc
 +++ b/chrome/browser/net/proxy_config_monitor.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "chrome/browser/net/proxy_config_monitor.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/functional/bind.h"
  #include "chrome/browser/browser_process.h"
  #include "chrome/browser/net/profile_network_context_service.h"
-@@ -86,6 +87,14 @@ void ProxyConfigMonitor::AddToNetworkContextParams(
+@@ -86,2 +87,11 @@ void ProxyConfigMonitor::AddToNetworkContextParams(
    network_context_params->initial_proxy_config = proxy_config;
 +  std::string proxy_uri = fp_config::ProxyUri();
 +  if (!proxy_uri.empty()) {
@@ -23,14 +23,14 @@
  }
 --- a/chrome/browser/net/profile_network_context_service.cc
 +++ b/chrome/browser/net/profile_network_context_service.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "chrome/browser/net/profile_network_context_service.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/command_line.h"
  #include "base/feature_list.h"
  #include "base/functional/bind.h"
-@@ -896,6 +897,11 @@ void ProfileNetworkContextService::DisableQuicIfNotAllowed() {
+@@ -896,4 +897,8 @@ void ProfileNetworkContextService::DisableQuicIfNotAllowed() {
    if (!profile_->GetPrefs()->GetBoolean(prefs::kQuicAllowed)) {
      g_browser_process->system_network_context_manager()->DisableQuic();
    }
@@ -41,14 +41,14 @@
  }
 --- a/services/network/network_context.cc
 +++ b/services/network/network_context.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "services/network/network_context.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/barrier_callback.h"
  #include "base/command_line.h"
  #include "base/containers/contains.h"
-@@ -1761,6 +1762,11 @@ void NetworkContext::CreateUDPSocket(
+@@ -1761,4 +1762,9 @@ void NetworkContext::CreateUDPSocket(
      mojo::PendingReceiver<mojom::UDPSocket> receiver,
      mojo::PendingRemote<mojom::UDPSocketListener> listener) {
 +  if (fp_config::WebRtcProxyUdp() && !fp_config::ProxyConfigured()) {
@@ -60,14 +60,14 @@
  }
 --- a/net/socket/udp_socket_win.cc
 +++ b/net/socket/udp_socket_win.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "net/socket/udp_socket_win.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/check_op.h"
  #include "base/compiler_specific.h"
  #include "base/containers/span.h"
-@@ -642,6 +643,13 @@ int UDPSocketWin::SendTo(IOBuffer* buf,
+@@ -642,6 +643,12 @@ int UDPSocketWin::SendTo(IOBuffer* buf,
                           int buf_len,
                           const IPEndPoint& address,
                           CompletionOnceCallback callback) {
@@ -82,14 +82,14 @@
    DCHECK_NE(socket_, INVALID_SOCKET);
 --- a/services/network/p2p/socket_udp.cc
 +++ b/services/network/p2p/socket_udp.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "services/network/p2p/socket_udp.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/functional/bind.h"
  #include "base/location.h"
  #include "base/task/sequenced_task_runner.h"
-@@ -305,6 +306,10 @@ int P2PSocketUdp::DoSendToSocket(
+@@ -305,5 +306,8 @@ int P2PSocketUdp::DoSendToSocket(
      const net::IPEndPoint& address,
      rtc::ArrayView<const char> data) {
 +  if (fp_config::WebRtcProxyUdp() && !fp_config::ProxyConfigured()) {
@@ -100,7 +100,7 @@
    return socket_->SendTo(buf.get(), data.size(), address,
 --- /dev/null
 +++ b/net/socket/fp_socks5_udp_client.h
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,43 @@
 +// Copyright 2026 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.

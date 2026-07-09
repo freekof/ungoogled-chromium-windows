@@ -2,14 +2,14 @@
 
 --- a/net/base/network_interfaces_win.cc
 +++ b/net/base/network_interfaces_win.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "net/base/network_interfaces.h"
  
 +#include "base/fp_config/fp_config.h"
  #include <winsock2.h>
  #include <ws2tcpip.h>
  #include <iphlpapi.h>
-@@ -246,6 +247,19 @@ bool GetNetworkList(NetworkInterfaceList* networks,
+@@ -246,7 +247,20 @@ bool GetNetworkList(NetworkInterfaceList* networks,
        continue;
      }
  
@@ -32,14 +32,14 @@
  }
 --- a/base/system/sys_info_win.cc
 +++ b/base/system/sys_info_win.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "base/system/sys_info.h"
  
 +#include "base/fp_config/fp_config.h"
  #include <windows.h>
  
  namespace base {
-@@ -81,6 +82,9 @@ std::string SysInfo::OperatingSystemArchitecture() {
+@@ -81,5 +82,8 @@ std::string SysInfo::OperatingSystemArchitecture() {
  }
  
  std::string SysInfo::HardwareModelName() {

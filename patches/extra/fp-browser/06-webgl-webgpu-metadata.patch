@@ -2,36 +2,40 @@
 
 --- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
 +++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/check_op.h"
  #include "base/containers/contains.h"
  #include "base/feature_list.h"
-@@ -3864,9 +3865,15 @@ ScriptValue WebGLRenderingContextBase::getParameter(
+@@ -3864,6 +3865,16 @@ ScriptValue WebGLRenderingContextBase::getParameter(
      case WebGLDebugRendererInfo::kUnmaskedRendererWebgl:
-+      if (std::optional<std::string> renderer = fp_config::GetString("webgl.renderer")) {
-+        return WebGLAny(script_state, String::FromUTF8(*renderer));
++      if (fp_config::ModeIs("webgl.mode", "custom")) {
++        if (std::optional<std::string> renderer = fp_config::GetString("webgl.renderer")) {
++          return WebGLAny(script_state, String::FromUTF8(*renderer));
++        }
 +      }
        return WebGLAny(script_state,
                        String(ContextGL()->GetString(GL_RENDERER)));
      case WebGLDebugRendererInfo::kUnmaskedVendorWebgl:
-+      if (std::optional<std::string> vendor = fp_config::GetString("webgl.vendor")) {
-+        return WebGLAny(script_state, String::FromUTF8(*vendor));
++      if (fp_config::ModeIs("webgl.mode", "custom")) {
++        if (std::optional<std::string> vendor = fp_config::GetString("webgl.vendor")) {
++          return WebGLAny(script_state, String::FromUTF8(*vendor));
++        }
 +      }
        return WebGLAny(script_state,
                        String(ContextGL()->GetString(GL_VENDOR)));
 --- a/third_party/blink/renderer/modules/webgpu/gpu_adapter.cc
 +++ b/third_party/blink/renderer/modules/webgpu/gpu_adapter.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/modules/webgpu/gpu_adapter.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/check.h"
  #include "gpu/command_buffer/client/webgpu_interface.h"
  #include "third_party/blink/renderer/bindings/modules/v8/v8_gpu_adapter_info.h"
-@@ -111,6 +112,16 @@ GPUAdapterInfo* GPUAdapter::info() const {
+@@ -111,7 +112,16 @@ GPUAdapterInfo* GPUAdapter::info() const {
    GPUAdapterInfo* info = GPUAdapterInfo::Create();
    info->setVendor(vendor_);
    info->setArchitecture(architecture_);
@@ -48,3 +52,24 @@
 +  }
    return info;
  }
+--- a/third_party/blink/renderer/modules/webgpu/gpu.cc
++++ b/third_party/blink/renderer/modules/webgpu/gpu.cc
+@@ -5,4 +5,5 @@
+ #include "third_party/blink/renderer/modules/webgpu/gpu.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "third_party/blink/renderer/bindings/modules/v8/v8_gpu_request_adapter_options.h"
+ #include "third_party/blink/renderer/core/dom/dom_exception.h"
+@@ -156,6 +157,12 @@ ScriptPromise<GPUAdapter> GPU::requestAdapter(
+     ScriptState* script_state,
+     const GPURequestAdapterOptions* options,
+     ExceptionState& exception_state) {
++  if (fp_config::ModeIs("webgpu.mode", "disabled")) {
++    auto* resolver = MakeGarbageCollected<ScriptPromiseResolver<GPUAdapter>>(script_state);
++    auto promise = resolver->Promise();
++    resolver->Resolve(nullptr);
++    return promise;
++  }
+   auto* resolver = MakeGarbageCollected<ScriptPromiseResolver<GPUAdapter>>(script_state);
+   RequestAdapterImpl(script_state, resolver, options);
+   return resolver->Promise();

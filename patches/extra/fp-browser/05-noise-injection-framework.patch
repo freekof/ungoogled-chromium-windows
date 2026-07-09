@@ -2,7 +2,7 @@
 
 --- /dev/null
 +++ b/base/fp_config/fp_noise.h
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,41 @@
 +// Copyright 2026 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -46,7 +46,7 @@
 +#endif  // BASE_FP_CONFIG_FP_NOISE_H_
 --- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
 +++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
-@@ -5,6 +5,8 @@
+@@ -5,5 +5,7 @@
  #include "third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h"
  
 +#include "base/fp_config/fp_config.h"
@@ -54,7 +54,7 @@
  #include "base/check_op.h"
  #include "base/containers/contains.h"
  #include "base/feature_list.h"
-@@ -5691,6 +5693,10 @@ void WebGLRenderingContextBase::ReadPixelsHelper(
+@@ -5691,2 +5693,6 @@ void WebGLRenderingContextBase::ReadPixelsHelper(
    ContextGL()->ReadPixels(x, y, width, height, format, type, pixels);
 +  if (fp_config::NoiseEnabled("webgl_image") && pixels) {
 +    fp_noise::InjectBytes(static_cast<uint8_t*>(pixels),
@@ -63,7 +63,7 @@
  }
 --- a/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
 +++ b/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
-@@ -5,6 +5,8 @@
+@@ -5,5 +5,7 @@
  #include "third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.h"
  
 +#include "base/fp_config/fp_config.h"
@@ -71,7 +71,7 @@
  #include "base/compiler_specific.h"
  #include "base/containers/span.h"
  #include "base/feature_list.h"
-@@ -1719,6 +1721,10 @@ ImageData* BaseRenderingContext2D::getImageDataInternal(
+@@ -1719,3 +1721,7 @@ ImageData* BaseRenderingContext2D::getImageDataInternal(
        color_settings, data_color_space, pixel_format, exception_state);
 +  if (fp_config::NoiseEnabled("canvas") && image_data) {
 +    fp_noise::InjectBytes(image_data->data()->Data(), image_data->data()->length(),
@@ -81,7 +81,7 @@
  }
 --- a/third_party/blink/renderer/modules/webaudio/offline_audio_context.cc
 +++ b/third_party/blink/renderer/modules/webaudio/offline_audio_context.cc
-@@ -5,6 +5,8 @@
+@@ -5,5 +5,7 @@
  #include "third_party/blink/renderer/modules/webaudio/offline_audio_context.h"
  
 +#include "base/fp_config/fp_config.h"
@@ -89,7 +89,7 @@
  #include "base/auto_reset.h"
  #include "base/metrics/histogram_functions.h"
  #include "third_party/blink/renderer/bindings/modules/v8/v8_offline_audio_completion_event_init.h"
-@@ -344,6 +346,15 @@ void OfflineAudioContext::FireCompletionEvent() {
+@@ -344,3 +346,13 @@ void OfflineAudioContext::FireCompletionEvent() {
    AudioBuffer* rendered_buffer = DestinationHandler().RenderedBuffer();
 +  if (fp_config::NoiseEnabled("audio_context") && rendered_buffer) {
 +    for (unsigned channel = 0; channel < rendered_buffer->numberOfChannels(); ++channel) {
@@ -105,7 +105,7 @@
        OfflineAudioCompletionEventInit::Create();
 --- a/third_party/blink/renderer/core/dom/element.cc
 +++ b/third_party/blink/renderer/core/dom/element.cc
-@@ -5,6 +5,8 @@
+@@ -5,5 +5,7 @@
  #include "third_party/blink/renderer/core/dom/element.h"
  
 +#include "base/fp_config/fp_config.h"
@@ -113,7 +113,7 @@
  #include "base/auto_reset.h"
  #include "base/compiler_specific.h"
  #include "base/containers/adapters.h"
-@@ -1212,6 +1214,12 @@ DOMRect* Element::GetBoundingClientRect() {
+@@ -1212,3 +1214,9 @@ DOMRect* Element::GetBoundingClientRect() {
    gfx::RectF result = GetBoundingClientRectNoLifecycleUpdate();
 +  if (fp_config::NoiseEnabled("client_rects")) {
 +    result.set_x(fp_noise::InjectFloat(result.x(), 0x43525801, 0.02f));
@@ -125,14 +125,14 @@
  }
 --- a/third_party/blink/renderer/modules/speech/speech_synthesis.cc
 +++ b/third_party/blink/renderer/modules/speech/speech_synthesis.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/modules/speech/speech_synthesis.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "third_party/blink/renderer/bindings/modules/v8/v8_speech_synthesis_error_event_init.h"
  #include "third_party/blink/renderer/bindings/modules/v8/v8_speech_synthesis_event_init.h"
  #include "third_party/blink/renderer/core/dom/events/event.h"
-@@ -274,6 +275,11 @@ void SpeechSynthesis::OnSetVoiceList(
+@@ -274,5 +275,10 @@ void SpeechSynthesis::OnSetVoiceList(
    voice_list_.clear();
    for (const auto& voice : voices)
      voice_list_.push_back(MakeGarbageCollected<SpeechSynthesisVoice>(voice));
@@ -145,13 +145,13 @@
  }
 --- a/third_party/blink/renderer/modules/mediastream/media_devices.cc
 +++ b/third_party/blink/renderer/modules/mediastream/media_devices.cc
-@@ -5,6 +5,7 @@
+@@ -5,4 +5,5 @@
  #include "third_party/blink/renderer/modules/mediastream/media_devices.h"
 
 +#include "base/fp_config/fp_config.h"
  #include <algorithm>
  #include <utility>
-@@ -486,6 +487,14 @@ ScriptPromise<IDLSequence<MediaDeviceInfo>> MediaDevices::enumerateDevices(
+@@ -486,5 +487,13 @@ ScriptPromise<IDLSequence<MediaDeviceInfo>> MediaDevices::enumerateDevices(
        base::FeatureList::IsEnabled(kEnumerateDevicesRequestAudioCapabilities),
        BindOnce(&MediaDevices::DevicesEnumerated, WrapPersistent(this),
                 WrapPersistent(result_tracker), std::move(tracer)));

@@ -2,7 +2,7 @@
 
 --- /dev/null
 +++ b/chrome/browser/fp_profile/fp_port_scan_throttle.h
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,44 @@
 +// Copyright 2026 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -49,13 +49,13 @@
 +#endif  // CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
-@@ -83,6 +83,7 @@
+@@ -83,4 +83,5 @@
  #include "chrome/browser/favicon/favicon_utils.h"
 +#include "chrome/browser/fp_profile/fp_port_scan_throttle.h"
  #include "chrome/browser/font_family_cache.h"
  #include "chrome/browser/headless/headless_mode_util.h"
  #include "chrome/browser/hid/chrome_hid_delegate.h"
-@@ -4450,6 +4451,7 @@ ChromeContentBrowserClient::CreateURLLoaderThrottles(
+@@ -4450,4 +4451,5 @@ ChromeContentBrowserClient::CreateURLLoaderThrottles(
    std::vector<std::unique_ptr<blink::URLLoaderThrottle>> result;
 +  result.push_back(std::make_unique<fp_profile::FpPortScanThrottle>());
  
@@ -63,14 +63,14 @@
    ChromeContentBrowserClientExtensionsPart::AppendURLLoaderThrottles(
 --- a/chrome/renderer/url_loader_throttle_provider_impl.cc
 +++ b/chrome/renderer/url_loader_throttle_provider_impl.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "chrome/renderer/url_loader_throttle_provider_impl.h"
  
 +#include "chrome/browser/fp_profile/fp_port_scan_throttle.h"
  #include "base/command_line.h"
  #include "base/feature_list.h"
  #include "base/memory/ptr_util.h"
-@@ -180,6 +181,7 @@ URLLoaderThrottleProviderImpl::CreateThrottles(
+@@ -180,4 +181,5 @@ URLLoaderThrottleProviderImpl::CreateThrottles(
    std::vector<std::unique_ptr<blink::URLLoaderThrottle>> throttles;
 +  throttles.push_back(std::make_unique<fp_profile::FpPortScanThrottle>());
  

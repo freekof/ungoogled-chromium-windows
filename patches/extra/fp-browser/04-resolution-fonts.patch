@@ -2,18 +2,19 @@
 
 --- a/third_party/blink/renderer/core/frame/screen.cc
 +++ b/third_party/blink/renderer/core/frame/screen.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/core/frame/screen.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "third_party/blink/renderer/core/frame/local_dom_window.h"
  #include "third_party/blink/renderer/core/frame/local_frame.h"
  #include "third_party/blink/renderer/platform/graphics/screen_info.h"
-@@ -137,6 +138,13 @@ gfx::Rect Screen::GetRect(bool available) const {
+@@ -137,3 +138,10 @@ gfx::Rect Screen::GetRect(bool available) const {
    gfx::Rect rect = available ? screen_info.available_rect : screen_info.rect;
 +  std::optional<int> width = fp_config::GetInt("resolution.width");
 +  std::optional<int> height = fp_config::GetInt("resolution.height");
-+  if (width && height && *width > 0 && *height > 0) {
++  if (fp_config::ModeAllowsOverride("resolution.mode") && width && height &&
++      *width > 0 && *height > 0) {
 +    rect.set_width(*width);
 +    rect.set_height(*height);
 +  }
@@ -21,15 +22,18 @@
  }
 --- a/content/browser/renderer_host/font_utils_win.cc
 +++ b/content/browser/renderer_host/font_utils_win.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "content/browser/renderer_host/font_utils_win.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/containers/contains.h"
  #include "base/no_destructor.h"
  #include "base/strings/string_util.h"
-@@ -74,6 +75,15 @@ bool IsFontAllowed(const std::u16string& font_name) {
-+  std::vector<std::string> configured_fonts = fp_config::GetStringList("fonts.list");
+@@ -74,2 +75,15 @@ bool IsFontAllowed(const std::u16string& font_name) {
++  std::vector<std::string> configured_fonts =
++      fp_config::ModeAllowsOverride("fonts.mode")
++          ? fp_config::GetStringList("fonts.list")
++          : std::vector<std::string>();
 +  if (!configured_fonts.empty()) {
 +    std::string utf8_font = base::UTF16ToUTF8(font_name);
 +    for (const std::string& configured_font : configured_fonts) {

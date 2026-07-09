@@ -2,14 +2,14 @@
 
 --- a/third_party/blink/renderer/core/frame/navigator_concurrent_hardware.cc
 +++ b/third_party/blink/renderer/core/frame/navigator_concurrent_hardware.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/core/frame/navigator_concurrent_hardware.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/system/sys_info.h"
  
  namespace blink {
-@@ -16,6 +17,11 @@ unsigned NavigatorConcurrentHardware::hardwareConcurrency() const {
+@@ -16,2 +17,7 @@ unsigned NavigatorConcurrentHardware::hardwareConcurrency() const {
 +  if (std::optional<int> cpu_cores = fp_config::GetInt("cpu_cores")) {
 +    if (*cpu_cores > 0 && *cpu_cores <= 128) {
 +      return static_cast<unsigned>(*cpu_cores);
@@ -19,14 +19,14 @@
  }
 --- a/third_party/blink/renderer/core/frame/navigator_device_memory.cc
 +++ b/third_party/blink/renderer/core/frame/navigator_device_memory.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/core/frame/navigator_device_memory.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "third_party/blink/renderer/platform/instrumentation/use_counter.h"
  #include "third_party/blink/renderer/platform/runtime_enabled_features.h"
  
-@@ -18,6 +19,11 @@ float NavigatorDeviceMemory::deviceMemory() const {
+@@ -18,2 +19,7 @@ float NavigatorDeviceMemory::deviceMemory() const {
 +  if (std::optional<int> memory = fp_config::GetInt("device_memory_gb")) {
 +    if (*memory > 0 && *memory <= 128) {
 +      return static_cast<float>(*memory);
@@ -36,14 +36,14 @@
  }
 --- a/third_party/blink/renderer/modules/navigatorcontentutils/navigator_do_not_track.cc
 +++ b/third_party/blink/renderer/modules/navigatorcontentutils/navigator_do_not_track.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/modules/navigatorcontentutils/navigator_do_not_track.h"
 
 +#include "base/fp_config/fp_config.h"
  #include "third_party/blink/renderer/core/frame/navigator.h"
 
  namespace blink {
-@@ -14,6 +15,14 @@ String NavigatorDoNotTrack::doNotTrack(Navigator& navigator) {
+@@ -14,2 +15,10 @@ String NavigatorDoNotTrack::doNotTrack(Navigator& navigator) {
 +  if (fp_config::ModeIs("do_not_track", "enabled") ||
 +      fp_config::ModeIs("do_not_track", "on")) {
 +    return "1";

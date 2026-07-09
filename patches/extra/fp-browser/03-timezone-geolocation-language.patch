@@ -2,34 +2,39 @@
 
 --- a/third_party/blink/renderer/core/frame/navigator_language.cc
 +++ b/third_party/blink/renderer/core/frame/navigator_language.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "third_party/blink/renderer/core/frame/navigator_language.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "third_party/blink/renderer/platform/language.h"
  
  namespace blink {
-@@ -24,6 +25,10 @@ AtomicString NavigatorLanguage::language() {
+@@ -24,5 +25,10 @@ AtomicString NavigatorLanguage::language() {
    const Vector<AtomicString>& languages = this->languages();
    if (!languages.empty())
      return languages[0];
 +  if (std::optional<std::string> language =
-+          fp_config::GetString("language.value")) {
++          fp_config::GetString("language.value");
++      fp_config::ModeAllowsOverride("language.mode") && language) {
 +    return AtomicString::FromUTF8(*language);
 +  }
    return AtomicString();
  }
-@@ -42,6 +47,12 @@ const Vector<AtomicString>& NavigatorLanguage::languages() {
+@@ -42,4 +47,19 @@ const Vector<AtomicString>& NavigatorLanguage::languages() {
      EnsureUpdatedLanguage();
    }
-+  std::vector<std::string> configured_languages = fp_config::GetStringList("languages");
++  std::vector<std::string> configured_languages =
++      fp_config::ModeAllowsOverride("language.mode")
++          ? fp_config::GetStringList("languages")
++          : std::vector<std::string>();
 +  if (!configured_languages.empty()) {
 +    languages_.clear();
 +    for (const std::string& language : configured_languages) {
 +      languages_.push_back(AtomicString::FromUTF8(language));
 +    }
 +  } else if (std::optional<std::string> language =
-+                 fp_config::GetString("language.value")) {
++                 fp_config::GetString("language.value");
++             fp_config::ModeAllowsOverride("language.mode") && language) {
 +    languages_.clear();
 +    languages_.push_back(AtomicString::FromUTF8(*language));
 +  }
@@ -37,18 +42,24 @@
  }
 --- a/chrome/browser/renderer_preferences_util.cc
 +++ b/chrome/browser/renderer_preferences_util.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,7 @@
  #include "chrome/browser/renderer_preferences_util.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/command_line.h"
  #include "base/i18n/rtl.h"
++#include "base/strings/string_util.h"
  #include "base/notreached.h"
-@@ -213,6 +214,15 @@ void UpdateFromSystemSettings(blink::RendererPreferences* prefs,
+@@ -213,3 +214,16 @@ void UpdateFromSystemSettings(blink::RendererPreferences* prefs,
        blink::ToWebRTCIPHandlingPolicy(
            profile->GetPrefs()->GetString(prefs::kWebRTCIPHandlingPolicy));
-+  if (std::optional<std::string> language =
-+          fp_config::GetString("language.value")) {
++  std::vector<std::string> configured_languages = fp_config::GetStringList("languages");
++  if (fp_config::ModeAllowsOverride("language.mode") &&
++      !configured_languages.empty()) {
++    prefs->accept_languages = base::JoinString(configured_languages, ",");
++  } else if (std::optional<std::string> language =
++                 fp_config::GetString("language.value");
++             fp_config::ModeAllowsOverride("language.mode") && language) {
 +    prefs->accept_languages = *language;
 +  }
 +  if (fp_config::WebRtcProxyUdp()) {
@@ -58,15 +69,18 @@
  }
 --- a/content/browser/geolocation/geolocation_provider_impl.cc
 +++ b/content/browser/geolocation/geolocation_provider_impl.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "content/browser/geolocation/geolocation_provider_impl.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/functional/bind.h"
  #include "base/location.h"
  #include "base/task/single_thread_task_runner.h"
-@@ -248,6 +249,18 @@ void GeolocationProviderImpl::NotifyClients(
+@@ -248,5 +249,19 @@ void GeolocationProviderImpl::NotifyClients(
      const device::mojom::Geoposition& position) {
++  if (fp_config::GeolocationDisabled()) {
++    return;
++  }
 +  if (fp_config::ModeIs("geolocation.mode", "custom")) {
 +    device::mojom::Geoposition spoofed;
 +    spoofed.latitude = fp_config::GetDouble("geolocation.latitude").value_or(0);
@@ -82,19 +96,44 @@
      client->OnLocationUpdate(position);
    }
  }
+--- a/chrome/browser/geolocation/geolocation_permission_context.cc
++++ b/chrome/browser/geolocation/geolocation_permission_context.cc
+@@ -5,4 +5,5 @@
+ #include "chrome/browser/geolocation/geolocation_permission_context.h"
+ 
++#include "base/fp_config/fp_config.h"
+ #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
+ #include "components/content_settings/core/common/content_settings.h"
+@@ -79,7 +80,15 @@ void GeolocationPermissionContext::DecidePermission(
+     const permissions::PermissionRequestID& id,
+     const GURL& requesting_origin,
+     bool user_gesture,
+     BrowserPermissionCallback callback) {
++  if (fp_config::GeolocationDisabled()) {
++    std::move(callback).Run(CONTENT_SETTING_BLOCK);
++    return;
++  }
++  if (fp_config::GeolocationAlwaysAllow()) {
++    std::move(callback).Run(CONTENT_SETTING_ALLOW);
++    return;
++  }
+   PermissionContextBase::DecidePermission(id, requesting_origin, user_gesture,
+                                           std::move(callback));
+ }
 --- a/base/i18n/timezone.cc
 +++ b/base/i18n/timezone.cc
-@@ -5,6 +5,7 @@
+@@ -5,5 +5,6 @@
  #include "base/i18n/timezone.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "base/check.h"
  #include "base/notreached.h"
  #include "third_party/icu/source/common/unicode/unistr.h"
-@@ -18,6 +19,11 @@ std::u16string GetConfiguredTimeZone() {
+@@ -18,4 +19,10 @@ std::u16string GetConfiguredTimeZone() {
    icu::UnicodeString zone;
 +  if (std::optional<std::string> timezone =
-+          fp_config::GetString("timezone.value")) {
++          fp_config::GetString("timezone.value");
++      fp_config::ModeAllowsOverride("timezone.mode") && timezone) {
 +    zone = icu::UnicodeString::fromUTF8(*timezone);
 +    return base::i18n::UnicodeStringToString16(zone);
 +  }
