@@ -179,8 +179,20 @@ def main():
             get_logger().info('Unpacking chromium tarball...')
             downloads.unpack_downloads(download_info, downloads_cache, None, source_tree, extractors)
         else:
-            # Clone sources
-            subprocess.run([sys.executable, str(Path('ungoogled-chromium', 'utils', 'clone.py')), '-o', 'build\\src', '-p', 'win32' if args.x86 else 'win-arm64' if args.arm else 'win64'], check=True)
+            # Clone sources (with retry for network resilience)
+            _clone_args = [sys.executable, str(Path('ungoogled-chromium', 'utils', 'clone.py')), '-o', 'build\\src', '-p', 'win32' if args.x86 else 'win-arm64' if args.arm else 'win64']
+            for attempt in range(3):
+                get_logger().info('Cloning Chromium sources (attempt %d/3)...', attempt + 1)
+                try:
+                    subprocess.run(_clone_args, check=True)
+                    break
+                except subprocess.CalledProcessError as e:
+                    if attempt < 2:
+                        get_logger().warning('Clone attempt %d failed (ret=%d), retrying in 30s...', attempt + 1, e.returncode)
+                        time.sleep(30)
+                    else:
+                        get_logger().error('All clone attempts failed.')
+                        raise
 
         # Retrieve windows downloads
         get_logger().info('Downloading required files...')
