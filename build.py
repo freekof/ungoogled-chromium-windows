@@ -28,6 +28,7 @@ sys.path.pop(0)
 
 _ROOT_DIR = Path(__file__).resolve().parent
 _PATCH_BIN_RELPATH = Path('third_party/git/usr/bin/patch.exe')
+_CI_STAGE_TIMEOUT_EXIT_CODE = 2
 
 
 def _get_vcvars_path(name='64'):
@@ -318,7 +319,10 @@ def main():
 
     # Run ninja
     if args.ci:
-        _run_build_process_timeout(*ninja_commandline, timeout=3.5*60*60)
+        try:
+            _run_build_process_timeout(*ninja_commandline, timeout=3.5*60*60)
+        except KeyboardInterrupt:
+            sys.exit(_CI_STAGE_TIMEOUT_EXIT_CODE)
         # package
         os.chdir(_ROOT_DIR)
         subprocess.run([sys.executable, 'package.py', '--cpu-arch', '32bit' if args.x86 else 'arm' if args.arm else '64bit'])
