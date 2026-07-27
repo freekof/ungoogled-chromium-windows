@@ -1,16 +1,61 @@
 # Fingerprint browser: WebRTC modes and ICE candidate replacement.
+# Rebased for Chromium 150.0.7871.46:
+#   - reordered hunks in rtc_peer_connection.cc (ParseConfiguration now precedes
+#     RTCPeerConnection::Create in the file; GNU patch cannot apply hunks that
+#     move backwards, which is what broke the build)
+#   - rtc_ice_candidate_platform.cc: include block and std::move() ctor updated
+#   - renderer_blink_platform_impl.cc: GetWebRTCRendererPreferences is now a
+#     void out-param API using blink::mojom::WebRtcIpHandlingPolicy
+#   - String::FromUTF8 -> String::FromUtf8 (WTF rename)
 
+--- a/content/renderer/renderer_blink_platform_impl.cc
++++ b/content/renderer/renderer_blink_platform_impl.cc
+@@ -14,6 +14,7 @@
+ #include "base/command_line.h"
+ #include "base/feature_list.h"
+ #include "base/files/file_path.h"
++#include "base/fp_config/fp_config.h"
+ #include "base/functional/bind.h"
+ #include "base/lazy_instance.h"
+ #include "base/location.h"
+@@ -674,6 +675,11 @@ void RendererBlinkPlatformImpl::GetWebRTCRendererPreferences(
+     }
+   }
+ 
++  if (fp_config::WebRtcProxyUdp()) {
++    *ip_handling_policy =
++        blink::mojom::WebRtcIpHandlingPolicy::kDisableNonProxiedUdp;
++  }
++
+   *udp_min_port = render_frame->GetRendererPreferences().webrtc_udp_min_port;
+   *udp_max_port = render_frame->GetRendererPreferences().webrtc_udp_max_port;
+   const std::string url(web_frame->GetSecurityOrigin().ToString().Utf8());
 --- a/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection.cc
 +++ b/third_party/blink/renderer/modules/peerconnection/rtc_peer_connection.cc
-@@ -31,6 +31,7 @@
- #include <string>
- #include <utility>
- 
-+#include "base/fp_config/fp_config.h"
+@@ -39,6 +39,7 @@
  #include "base/compiler_specific.h"
  #include "base/containers/to_vector.h"
  #include "base/feature_list.h"
-@@ -251,6 +252,12 @@ RTCPeerConnection* RTCPeerConnection::Create(
++#include "base/fp_config/fp_config.h"
+ #include "base/lazy_instance.h"
+ #include "base/memory/ptr_util.h"
+ #include "base/metrics/histogram_functions.h"
+@@ -390,6 +391,14 @@ webrtc::PeerConnectionInterface::RTCConfiguration ParseConfiguration(
+   web_configuration.ice_candidate_pool_size =
+       configuration->iceCandidatePoolSize();
+ 
++  if (fp_config::WebRtcProxyUdp()) {
++    web_configuration.type = webrtc::PeerConnectionInterface::kRelay;
++  }
++  if (fp_config::WebRtcReplaceCandidate() &&
++      fp_config::FakePublicIp().has_value()) {
++    web_configuration.disable_ipv6_on_wifi = true;
++  }
++
+   if (configuration->hasRtcAudioJitterBufferMaxPackets()) {
+     UseCounter::Count(context, WebFeature::kRTCMaxAudioBufferSize);
+     web_configuration.audio_jitter_buffer_max_packets =
+@@ -568,6 +577,12 @@ RTCPeerConnection* RTCPeerConnection::Create(
          "PeerConnections may not be created in detached documents.");
      return nullptr;
    }
@@ -23,57 +68,24 @@
  
    // Count number of PeerConnections that could potentially be impacted by CSP
    auto* content_security_policy = context->GetContentSecurityPolicy();
-@@ -497,6 +504,13 @@ webrtc::PeerConnectionInterface::RTCConfiguration ParseConfiguration(
- 
-   web_configuration.ice_candidate_pool_size =
-       configuration->iceCandidatePoolSize();
-+
-+  if (fp_config::WebRtcProxyUdp()) {
-+    web_configuration.type = webrtc::PeerConnectionInterface::kRelay;
-+  }
-+  if (fp_config::WebRtcReplaceCandidate() && fp_config::FakePublicIp()) {
-+    web_configuration.disable_ipv6_on_wifi = true;
-+  }
- 
-   if (configuration->hasRtcAudioJitterBufferMaxPackets()) {
-     UseCounter::Count(context, WebFeature::kRTCMaxAudioBufferSize);
 --- a/third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.cc
 +++ b/third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.cc
-@@ -5,5 +5,6 @@
+@@ -4,6 +4,7 @@
+ 
  #include "third_party/blink/renderer/platform/peerconnection/rtc_ice_candidate_platform.h"
  
 +#include "base/fp_config/fp_config.h"
- #include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
- #include "third_party/webrtc/api/jsep_ice_candidate.h"
+ #include "third_party/webrtc/api/candidate.h"
+ #include "third_party/webrtc/p2p/base/p2p_constants.h"
  
-@@ -23,9 +24,13 @@ RTCIceCandidatePlatform::RTCIceCandidatePlatform(
-     String username_fragment,
-     String url)
-     : candidate_(candidate),
-       sdp_mid_(sdp_mid),
-       sdp_m_line_index_(sdp_m_line_index),
-       username_fragment_(username_fragment),
-       url_(url) {
+@@ -52,6 +53,10 @@ RTCIceCandidatePlatform::RTCIceCandidatePlatform(
+       sdp_m_line_index_(std::move(sdp_m_line_index)),
+       username_fragment_(std::move(username_fragment)),
+       url_(std::move(url)) {
 +  if (fp_config::WebRtcReplaceCandidate()) {
-+    candidate_ = String::FromUTF8(
-+        fp_config::RewriteCandidateIp(candidate_.Utf8()));
++    candidate_ =
++        String::FromUtf8(fp_config::RewriteCandidateIp(candidate_.Utf8()));
 +  }
    PopulateFields();
  }
---- a/content/renderer/renderer_blink_platform_impl.cc
-+++ b/content/renderer/renderer_blink_platform_impl.cc
-@@ -7,4 +7,5 @@
  
-+#include "base/fp_config/fp_config.h"
- #include "base/command_line.h"
- #include "base/feature_list.h"
- #include "base/functional/bind.h"
-@@ -1450,5 +1451,8 @@ blink::WebString RendererBlinkPlatformImpl::GetWebRTCRendererPreferences(
-   const blink::RendererPreferences& renderer_preferences =
-       render_frame->GetRendererPreferences();
-+  if (fp_config::WebRtcProxyUdp()) {
-+    return blink::WebString::FromASCII("disable_non_proxied_udp");
-+  }
-   return blink::WebString::FromASCII(
-       renderer_preferences.webrtc_ip_handling_policy);
- }

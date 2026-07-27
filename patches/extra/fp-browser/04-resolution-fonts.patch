@@ -2,14 +2,13 @@
 
 --- a/third_party/blink/renderer/core/frame/screen.cc
 +++ b/third_party/blink/renderer/core/frame/screen.cc
-@@ -5,5 +5,6 @@
+@@ -5,4 +5,5 @@
  #include "third_party/blink/renderer/core/frame/screen.h"
  
 +#include "base/fp_config/fp_config.h"
- #include "third_party/blink/renderer/core/frame/local_dom_window.h"
- #include "third_party/blink/renderer/core/frame/local_frame.h"
- #include "third_party/blink/renderer/platform/graphics/screen_info.h"
-@@ -137,3 +138,10 @@ gfx::Rect Screen::GetRect(bool available) const {
+ #include "base/numerics/safe_conversions.h"
+ #include "services/network/public/mojom/permissions_policy/permissions_policy_feature.mojom-blink.h"
+@@ -194,3 +195,10 @@
    gfx::Rect rect = available ? screen_info.available_rect : screen_info.rect;
 +  std::optional<int> width = fp_config::GetInt("resolution.width");
 +  std::optional<int> height = fp_config::GetInt("resolution.height");
@@ -18,18 +17,18 @@
 +    rect.set_width(*width);
 +    rect.set_height(*height);
 +  }
-   return rect;
- }
---- a/content/browser/renderer_host/font_utils_win.cc
-+++ b/content/browser/renderer_host/font_utils_win.cc
-@@ -5,5 +5,6 @@
- #include "content/browser/renderer_host/font_utils_win.h"
+   if (frame->GetSettings()->GetReportScreenSizeInPhysicalPixelsQuirk())
+--- a/content/browser/renderer_host/dwrite_font_proxy_impl_win.cc
++++ b/content/browser/renderer_host/dwrite_font_proxy_impl_win.cc
+@@ -5,4 +5,5 @@
+ #include "content/browser/renderer_host/dwrite_font_proxy_impl_win.h"
  
 +#include "base/fp_config/fp_config.h"
- #include "base/containers/contains.h"
- #include "base/no_destructor.h"
- #include "base/strings/string_util.h"
-@@ -74,2 +75,15 @@ bool IsFontAllowed(const std::u16string& font_name) {
+ #include <windows.h>
+ #include <shlobj.h>
+@@ -48,4 +49,19 @@
+ 
++bool IsFontAllowed(const std::u16string& font_name) {
 +  std::vector<std::string> configured_fonts =
 +      fp_config::ModeAllowsOverride("fonts.mode")
 +          ? fp_config::GetStringList("fonts.list")
@@ -43,5 +42,20 @@
 +    }
 +    return false;
 +  }
-   return true;
- }
++  return true;
++}
++
+ enum class DWriteFontProxyIPC {
+@@ -190,3 +206,3 @@
+   UINT32 family_index = UINT32_MAX;
+-  if (collection_) {
++  if (IsFontAllowed(family_name) && collection_) {
+     BOOL exists = FALSE;
+@@ -358,4 +374,8 @@
+   InitializeDirectWrite();
++  if (!IsFontAllowed(unique_font_name)) {
++    std::move(callback).Run(base::File(), 0);
++    return;
++  }
+ 
+   // We must not get here if this version of DWrite can't handle performing the

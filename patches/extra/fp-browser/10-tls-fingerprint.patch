@@ -2,16 +2,14 @@
 
 --- a/net/socket/ssl_client_socket_impl.cc
 +++ b/net/socket/ssl_client_socket_impl.cc
-@@ -5,5 +5,6 @@
+@@ -5,5 +6,6 @@
  #include "net/socket/ssl_client_socket_impl.h"
  
 +#include "base/fp_config/fp_config.h"
  #include <algorithm>
  #include <memory>
- #include <string_view>
-@@ -1017,5 +1018,13 @@ int SSLClientSocketImpl::Init() {
-   SSL_set_permute_extensions(ssl_.get(),
-                              ssl_config_.permute_extensions ? 1 : 0);
+@@ -879,3 +881,11 @@
+   SSL_set_permute_extensions(ssl_.get(), 1);
 +  if (fp_config::ModeIs("tls_fingerprint.mode", "fixed_chrome")) {
 +    // Fixed mode intentionally disables Chromium's extension permutation so a
 +    // profile can be tested against deterministic JA3-style observations.
@@ -21,22 +19,19 @@
 +    // Preserve upstream Chromium behavior.
 +  }
  
-   if (!ssl_config_.alpn_protos.empty()) {
-     std::vector<uint8_t> wire_format;
+   // Configure BoringSSL to send Trust Anchor IDs, if provided.
 --- a/net/ssl/ssl_config_service.cc
 +++ b/net/ssl/ssl_config_service.cc
-@@ -5,5 +5,6 @@
+@@ -5,5 +6,6 @@
  #include "net/ssl/ssl_config_service.h"
  
 +#include "base/fp_config/fp_config.h"
- #include "base/check_op.h"
- #include "base/containers/contains.h"
- 
-@@ -84,3 +85,7 @@ SSLContextConfig SSLConfigService::GetSSLContextConfig() const {
-   SSLContextConfig config = GetSSLContextConfigImpl();
+ #include <tuple>
+@@ -84,4 +86,7 @@
+ SSLContextConfig::SSLContextConfig() {
+   supported_named_groups.assign(std::begin(kDefaultSSLSupportedGroups),
+                                 std::end(kDefaultSSLSupportedGroups));
 +  if (fp_config::ModeIs("tls_fingerprint.mode", "fixed_chrome")) {
-+    config.tls13_variant = SSLContextConfig::TLS13Variant::kDisabled;
-+    config.tls13_cipher_prefer_aes_256 = false;
++    tls13_cipher_prefer_aes_256 = false;
 +  }
-   return config;
  }

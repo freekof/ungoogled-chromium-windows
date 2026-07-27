@@ -19,13 +19,12 @@
  }
 --- a/third_party/blink/renderer/core/frame/navigator_device_memory.cc
 +++ b/third_party/blink/renderer/core/frame/navigator_device_memory.cc
-@@ -5,5 +5,6 @@
+@@ -5,5 +6,6 @@
  #include "third_party/blink/renderer/core/frame/navigator_device_memory.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "third_party/blink/renderer/platform/instrumentation/use_counter.h"
  #include "third_party/blink/renderer/platform/runtime_enabled_features.h"
- 
 @@ -18,2 +19,7 @@ float NavigatorDeviceMemory::deviceMemory() const {
 +  if (std::optional<int> memory = fp_config::GetInt("device_memory_gb")) {
 +    if (*memory > 0 && *memory <= 128) {
@@ -33,24 +32,4 @@
 +    }
 +  }
    return ApproximatedDeviceMemory::GetApproximatedDeviceMemory();
- }
---- a/third_party/blink/renderer/modules/navigatorcontentutils/navigator_do_not_track.cc
-+++ b/third_party/blink/renderer/modules/navigatorcontentutils/navigator_do_not_track.cc
-@@ -5,5 +5,6 @@
- #include "third_party/blink/renderer/modules/navigatorcontentutils/navigator_do_not_track.h"
-
-+#include "base/fp_config/fp_config.h"
- #include "third_party/blink/renderer/core/frame/navigator.h"
-
- namespace blink {
-@@ -14,2 +15,10 @@ String NavigatorDoNotTrack::doNotTrack(Navigator& navigator) {
-+  if (fp_config::ModeIs("do_not_track", "enabled") ||
-+      fp_config::ModeIs("do_not_track", "on")) {
-+    return "1";
-+  }
-+  if (fp_config::ModeIs("do_not_track", "disabled") ||
-+      fp_config::ModeIs("do_not_track", "off")) {
-+    return "0";
-+  }
-   return String();
  }
