@@ -49,7 +49,7 @@
 +#endif  // CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
-@@ -83,4 +83,5 @@
+@@ -83,2 +83,3 @@
  #include "chrome/browser/favicon/favicon_utils.h"
 +#include "chrome/browser/fp_profile/fp_port_scan_throttle.h"
  #include "chrome/browser/font_family_cache.h"
@@ -62,7 +62,7 @@
    DCHECK(browser_context);
 --- a/chrome/renderer/url_loader_throttle_provider_impl.cc
 +++ b/chrome/renderer/url_loader_throttle_provider_impl.cc
-@@ -5,4 +5,5 @@
+@@ -5,3 +5,4 @@
  #include "chrome/renderer/url_loader_throttle_provider_impl.h"
  
 +#include "chrome/browser/fp_profile/fp_port_scan_throttle.h"

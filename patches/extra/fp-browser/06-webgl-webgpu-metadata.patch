@@ -9,7 +9,7 @@
  #include "base/check_op.h"
  #include "base/containers/contains.h"
  #include "base/feature_list.h"
-@@ -4186,6 +4188,16 @@
+@@ -4186,6 +4188,11 @@
      case WebGLDebugRendererInfo::kUnmaskedRendererWebgl:
 +      if (fp_config::ModeIs("webgl.mode", "custom")) {
 +        if (std::optional<std::string> renderer = fp_config::GetString("webgl.renderer")) {
@@ -21,7 +21,7 @@
                          String(ContextGL()->GetString(GL_RENDERER)));
        }
        SynthesizeGLError(
-@@ -4195,6 +4207,16 @@
+@@ -4195,6 +4207,11 @@
      case WebGLDebugRendererInfo::kUnmaskedVendorWebgl:
 +      if (fp_config::ModeIs("webgl.mode", "custom")) {
 +        if (std::optional<std::string> vendor = fp_config::GetString("webgl.vendor")) {
@@ -35,13 +35,13 @@
        SynthesizeGLError(
 --- a/third_party/blink/renderer/modules/webgpu/gpu_adapter.cc
 +++ b/third_party/blink/renderer/modules/webgpu/gpu_adapter.cc
-@@ -5,5 +6,6 @@
+@@ -5,4 +6,5 @@
  #include "third_party/blink/renderer/modules/webgpu/gpu_adapter.h"
  
 +#include "base/fp_config/fp_config.h"
  #include "services/metrics/public/cpp/ukm_builders.h"
  #include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
-@@ -213,4 +214,14 @@
+@@ -213,3 +214,12 @@
  GPUAdapterInfo* GPUAdapter::info() const {
 +  if (fp_config::ModeIs("webgpu.mode", "based_on_webgl")) {
 +    if (std::optional<std::string> vendor = fp_config::GetString("webgl.vendor")) {
@@ -56,7 +56,7 @@
  }
 --- a/third_party/blink/renderer/modules/webgpu/gpu.cc
 +++ b/third_party/blink/renderer/modules/webgpu/gpu.cc
-@@ -5,4 +5,5 @@
+@@ -5,3 +5,4 @@
  #include "third_party/blink/renderer/modules/webgpu/gpu.h"
  
 +#include "base/fp_config/fp_config.h"

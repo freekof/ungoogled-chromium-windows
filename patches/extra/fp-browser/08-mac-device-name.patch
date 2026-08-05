@@ -2,13 +2,13 @@
 
 --- a/net/base/network_interfaces_win.cc
 +++ b/net/base/network_interfaces_win.cc
-@@ -5,5 +5,6 @@
+@@ -5,4 +5,5 @@
  #include "net/base/network_interfaces.h"
  
 +#include "base/fp_config/fp_config.h"
  #include <algorithm>
  #include <memory>
-@@ -201,3 +202,16 @@
+@@ -201,7 +202,23 @@
      mac_address.emplace();
      if (adapter->PhysicalAddressLength == mac_address->size()) {
        std::copy_n(reinterpret_cast<const uint8_t*>(adapter->PhysicalAddress),
@@ -34,7 +34,7 @@
 +    }
 --- a/base/system/sys_info_win.cc
 +++ b/base/system/sys_info_win.cc
-@@ -5,5 +5,6 @@
+@@ -5,3 +5,4 @@
  #include "base/system/sys_info.h"
  
 +#include "base/fp_config/fp_config.h"

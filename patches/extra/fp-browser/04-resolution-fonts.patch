@@ -8,7 +8,7 @@
 +#include "base/fp_config/fp_config.h"
  #include "base/numerics/safe_conversions.h"
  #include "services/network/public/mojom/permissions_policy/permissions_policy_feature.mojom-blink.h"
-@@ -194,3 +195,10 @@
+@@ -194,2 +195,9 @@
    gfx::Rect rect = available ? screen_info.available_rect : screen_info.rect;
 +  std::optional<int> width = fp_config::GetInt("resolution.width");
 +  std::optional<int> height = fp_config::GetInt("resolution.height");
@@ -26,7 +26,7 @@
 +#include "base/fp_config/fp_config.h"
  #include <windows.h>
  #include <shlobj.h>
-@@ -48,4 +49,19 @@
+@@ -48,2 +49,19 @@
  
 +bool IsFontAllowed(const std::u16string& font_name) {
 +  std::vector<std::string> configured_fonts =
@@ -51,7 +51,7 @@
 -  if (collection_) {
 +  if (IsFontAllowed(family_name) && collection_) {
      BOOL exists = FALSE;
-@@ -358,4 +374,8 @@
+@@ -358,3 +374,7 @@
    InitializeDirectWrite();
 +  if (!IsFontAllowed(unique_font_name)) {
 +    std::move(callback).Run(base::File(), 0);
