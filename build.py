@@ -194,10 +194,24 @@ def main():
                         get_logger().error('All clone attempts failed.')
                         raise
 
-        # Retrieve windows downloads
+        # Retrieve windows downloads (with retry for network resilience)
         get_logger().info('Downloading required files...')
         download_info_win = downloads.DownloadInfo([_ROOT_DIR / 'downloads.ini'])
-        downloads.retrieve_downloads(download_info_win, downloads_cache, None, True, args.disable_ssl_verification)
+        for attempt in range(3):
+            try:
+                downloads.retrieve_downloads(download_info_win, downloads_cache, None, True,
+                                             args.disable_ssl_verification)
+                break
+            except subprocess.CalledProcessError as exc:
+                if attempt < 2:
+                    get_logger().warning('Download attempt %d failed (ret=%d), retrying in 30s...',
+                                         attempt + 1, exc.returncode)
+                    for partial_file in downloads_cache.glob('*.partial'):
+                        partial_file.unlink()
+                    time.sleep(30)
+                else:
+                    get_logger().error('All download attempts failed.')
+                    raise
         try:
             downloads.check_downloads(download_info_win, downloads_cache, None)
         except downloads.HashMismatchError as exc:
