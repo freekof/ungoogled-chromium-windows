@@ -6,23 +6,23 @@
 +// Copyright 2026 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
-+
+
 +#ifndef BASE_FP_CONFIG_FP_NOISE_H_
 +#define BASE_FP_CONFIG_FP_NOISE_H_
-+
+
 +#include <stddef.h>
 +#include <stdint.h>
-+
+
 +#include <algorithm>
-+
+
 +#include "base/fp_config/fp_config.h"
-+
+
 +namespace fp_noise {
-+
+
 +inline uint8_t ByteNoise(uint64_t salt) {
 +  return static_cast<uint8_t>(fp_config::StableNoiseUnit(salt) * 3.0);
 +}
-+
+
 +inline void InjectBytes(uint8_t* data, size_t size, uint64_t salt) {
 +  if (!data || size == 0) {
 +    return;
@@ -32,28 +32,25 @@
 +    data[i] = static_cast<uint8_t>(std::clamp<int>(data[i] + noise - 1, 0, 255));
 +  }
 +}
-+
+
 +inline float InjectFloat(float value, uint64_t salt, float amplitude) {
 +  return value + static_cast<float>(fp_config::StableNoise(salt, amplitude));
 +}
-+
+
 +inline double InjectDouble(double value, uint64_t salt, double amplitude) {
 +  return value + fp_config::StableNoise(salt, amplitude);
 +}
-+
+
 +}  // namespace fp_noise
-+
+
 +#endif  // BASE_FP_CONFIG_FP_NOISE_H_
 --- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
 +++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
-@@ -5,5 +5,7 @@
+@@ -5,2 +5,4 @@
  #include "third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h"
- 
+
 +#include "base/fp_config/fp_config.h"
 +#include "base/fp_config/fp_noise.h"
- #include "base/check_op.h"
- #include "base/containers/contains.h"
- #include "base/feature_list.h"
 @@ -5342,2 +5344,6 @@
      ContextGL()->ReadPixels(x, y, width, height, format, type, data);
 +    if (fp_config::NoiseEnabled("webgl_image") && data) {
@@ -63,31 +60,26 @@
    }
 --- a/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
 +++ b/third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.cc
-@@ -5,5 +5,7 @@
+@@ -5,2 +5,4 @@
  #include "third_party/blink/renderer/modules/canvas/canvas2d/base_rendering_context_2d.h"
- 
+
 +#include "base/fp_config/fp_config.h"
 +#include "base/fp_config/fp_noise.h"
- #include "base/compiler_specific.h"
- #include "base/containers/span.h"
- #include "base/feature_list.h"
 @@ -514,3 +516,7 @@
    }
 +  if (fp_config::NoiseEnabled("canvas") && image_data) {
 +    fp_noise::InjectBytes(image_data->data()->Data(), image_data->data()->length(),
 +                          0x43414e564153ull);
 +  }
- 
+
    return image_data;
 --- a/third_party/blink/renderer/modules/webaudio/offline_audio_context.cc
 +++ b/third_party/blink/renderer/modules/webaudio/offline_audio_context.cc
-@@ -5,4 +5,6 @@
+@@ -5,2 +5,4 @@
  #include "third_party/blink/renderer/modules/webaudio/offline_audio_context.h"
- 
+
 +#include "base/fp_config/fp_config.h"
 +#include "base/fp_config/fp_noise.h"
- #include "base/auto_reset.h"
- #include "base/metrics/histogram_functions.h"
 @@ -794,2 +796,12 @@
      complete_resolver_->Resolve(rendered_buffer);
 +    if (fp_config::NoiseEnabled("audio_context")) {
@@ -101,15 +93,13 @@
 +      }
 +    }
    } else {
---- b/third_party/blink/renderer/core/dom/element.cc
+--- a/third_party/blink/renderer/core/dom/element.cc
 +++ b/third_party/blink/renderer/core/dom/element.cc
-@@ -5,4 +5,6 @@
+@@ -5,2 +5,4 @@
  #include "third_party/blink/renderer/core/dom/element.h"
- 
+
 +#include "base/fp_config/fp_config.h"
 +#include "base/fp_config/fp_noise.h"
- #include "base/auto_reset.h"
- #include "base/compiler_specific.h"
 @@ -3497,4 +3499,11 @@
    GetDocument().EnsurePaintLocationDataValidForNode(
        this, DocumentUpdateReason::kJavaScript);
@@ -125,17 +115,12 @@
  }
 --- a/third_party/blink/renderer/modules/speech/speech_synthesis.cc
 +++ b/third_party/blink/renderer/modules/speech/speech_synthesis.cc
-@@ -5,3 +5,4 @@
+@@ -5,2 +5,3 @@
  #include "third_party/blink/renderer/modules/speech/speech_synthesis.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include <tuple>
-@@ -125,7 +126,12 @@
+@@ -125,3 +126,8 @@
    voice_list_.clear();
-   for (const auto& voice : voices) {
-     voice_list_.push_back(
-         MakeGarbageCollected<SpeechSynthesisVoice>(std::move(voice)));
-   }
 +  if (fp_config::NoiseEnabled("speech_voices") && voice_list_.size() > 4) {
 +    while (voice_list_.size() > 4) {
 +      voice_list_.pop_back();
@@ -145,12 +130,10 @@
  }
 --- a/third_party/blink/renderer/modules/mediastream/media_devices.cc
 +++ b/third_party/blink/renderer/modules/mediastream/media_devices.cc
-@@ -5,4 +5,5 @@
+@@ -5,2 +5,3 @@
  #include "third_party/blink/renderer/modules/mediastream/media_devices.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include <algorithm>
- #include <utility>
 @@ -562,3 +563,11 @@
  WrapPersistent(result_tracker), std::move(tracer)));
 +  if (fp_config::NoiseEnabled("media_devices")) {

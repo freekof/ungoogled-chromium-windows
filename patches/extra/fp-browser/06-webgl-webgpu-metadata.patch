@@ -2,13 +2,10 @@
 
 --- a/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
 +++ b/third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.cc
-@@ -5,5 +5,6 @@
+@@ -5,2 +5,3 @@
  #include "third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include "base/check_op.h"
- #include "base/containers/contains.h"
- #include "base/feature_list.h"
 @@ -4186,6 +4188,11 @@
      case WebGLDebugRendererInfo::kUnmaskedRendererWebgl:
 +      if (fp_config::ModeIs("webgl.mode", "custom")) {
@@ -35,12 +32,10 @@
        SynthesizeGLError(
 --- a/third_party/blink/renderer/modules/webgpu/gpu_adapter.cc
 +++ b/third_party/blink/renderer/modules/webgpu/gpu_adapter.cc
-@@ -5,4 +6,5 @@
+@@ -5,2 +5,3 @@
  #include "third_party/blink/renderer/modules/webgpu/gpu_adapter.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include "services/metrics/public/cpp/ukm_builders.h"
- #include "third_party/blink/renderer/bindings/core/v8/script_promise_resolver.h"
 @@ -213,3 +214,12 @@
  GPUAdapterInfo* GPUAdapter::info() const {
 +  if (fp_config::ModeIs("webgpu.mode", "based_on_webgl")) {
@@ -56,11 +51,10 @@
  }
 --- a/third_party/blink/renderer/modules/webgpu/gpu.cc
 +++ b/third_party/blink/renderer/modules/webgpu/gpu.cc
-@@ -5,3 +5,4 @@
+@@ -5,2 +5,3 @@
  #include "third_party/blink/renderer/modules/webgpu/gpu.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include <utility>
 @@ -611,4 +612,10 @@
  ScriptPromise<IDLNullable<GPUAdapter>> GPU::requestAdapter(
      ScriptState* script_state,

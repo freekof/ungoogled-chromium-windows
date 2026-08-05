@@ -2,12 +2,10 @@
 
 --- a/net/base/network_interfaces_win.cc
 +++ b/net/base/network_interfaces_win.cc
-@@ -5,4 +5,5 @@
+@@ -5,2 +5,3 @@
  #include "net/base/network_interfaces.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include <algorithm>
- #include <memory>
 @@ -201,7 +202,23 @@
      mac_address.emplace();
      if (adapter->PhysicalAddressLength == mac_address->size()) {
@@ -34,11 +32,10 @@
 +    }
 --- a/base/system/sys_info_win.cc
 +++ b/base/system/sys_info_win.cc
-@@ -5,3 +5,4 @@
+@@ -5,2 +5,3 @@
  #include "base/system/sys_info.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include <windows.h>
 @@ -375,3 +377,6 @@
  std::string SysInfo::HardwareModelName() {
 +  if (std::optional<std::string> device_name = fp_config::GetString("device_name")) {

@@ -2,12 +2,10 @@
 
 --- a/net/socket/ssl_client_socket_impl.cc
 +++ b/net/socket/ssl_client_socket_impl.cc
-@@ -5,4 +6,5 @@
+@@ -5,2 +5,3 @@
  #include "net/socket/ssl_client_socket_impl.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include <algorithm>
- #include <memory>
 @@ -879,3 +881,11 @@
    SSL_set_permute_extensions(ssl_.get(), 1);
 +  if (fp_config::ModeIs("tls_fingerprint.mode", "fixed_chrome")) {
@@ -18,15 +16,14 @@
 +  if (fp_config::ModeIs("tls_fingerprint.mode", "chrome_default")) {
 +    // Preserve upstream Chromium behavior.
 +  }
- 
+
    // Configure BoringSSL to send Trust Anchor IDs, if provided.
 --- a/net/ssl/ssl_config_service.cc
 +++ b/net/ssl/ssl_config_service.cc
-@@ -5,3 +6,4 @@
+@@ -5,2 +5,3 @@
  #include "net/ssl/ssl_config_service.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include <tuple>
 @@ -84,4 +86,7 @@
  SSLContextConfig::SSLContextConfig() {
    supported_named_groups.assign(std::begin(kDefaultSSLSupportedGroups),

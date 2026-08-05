@@ -6,23 +6,23 @@
 +// Copyright 2026 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
-+
+
 +#ifndef CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
 +#define CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
-+
+
 +#include "base/fp_config/fp_config.h"
 +#include "net/base/net_errors.h"
 +#include "services/network/public/cpp/resource_request.h"
 +#include "third_party/blink/public/common/loader/url_loader_throttle.h"
 +#include "url/gurl.h"
-+
+
 +namespace fp_profile {
-+
+
 +class FpPortScanThrottle final : public blink::URLLoaderThrottle {
 + public:
 +  FpPortScanThrottle() = default;
 +  ~FpPortScanThrottle() override = default;
-+
+
 +  void WillStartRequest(network::ResourceRequest* request,
 +                        bool* defer) override {
 +    if (!request) {
@@ -43,9 +43,9 @@
 +    }
 +  }
 +};
-+
+
 +}  // namespace fp_profile
-+
+
 +#endif  // CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
@@ -58,20 +58,18 @@
 @@ -6053,3 +6055,4 @@
    std::vector<std::unique_ptr<blink::URLLoaderThrottle>> result;
 +  result.push_back(std::make_unique<fp_profile::FpPortScanThrottle>());
- 
+
    DCHECK(browser_context);
 --- a/chrome/renderer/url_loader_throttle_provider_impl.cc
 +++ b/chrome/renderer/url_loader_throttle_provider_impl.cc
-@@ -5,3 +5,4 @@
+@@ -5,2 +5,3 @@
  #include "chrome/renderer/url_loader_throttle_provider_impl.h"
- 
+
 +#include "chrome/browser/fp_profile/fp_port_scan_throttle.h"
- #include "base/command_line.h"
 --- a/chrome/renderer/url_loader_throttle_provider_impl.cc
 +++ b/chrome/renderer/url_loader_throttle_provider_impl.cc
 @@ -153,4 +154,5 @@
    DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
- 
+
    std::vector<std::unique_ptr<blink::URLLoaderThrottle>> throttles;
 +  throttles.push_back(std::make_unique<fp_profile::FpPortScanThrottle>());
- 

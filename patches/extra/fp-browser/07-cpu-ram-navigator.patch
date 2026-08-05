@@ -2,13 +2,10 @@
 
 --- a/third_party/blink/renderer/core/frame/navigator_concurrent_hardware.cc
 +++ b/third_party/blink/renderer/core/frame/navigator_concurrent_hardware.cc
-@@ -5,5 +5,6 @@
+@@ -5,2 +5,3 @@
  #include "third_party/blink/renderer/core/frame/navigator_concurrent_hardware.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include "base/system/sys_info.h"
- 
- namespace blink {
 @@ -16,2 +17,7 @@ unsigned NavigatorConcurrentHardware::hardwareConcurrency() const {
 +  if (std::optional<int> cpu_cores = fp_config::GetInt("cpu_cores")) {
 +    if (*cpu_cores > 0 && *cpu_cores <= 128) {
@@ -19,12 +16,10 @@
  }
 --- a/third_party/blink/renderer/core/frame/navigator_device_memory.cc
 +++ b/third_party/blink/renderer/core/frame/navigator_device_memory.cc
-@@ -5,4 +6,5 @@
+@@ -5,2 +5,3 @@
  #include "third_party/blink/renderer/core/frame/navigator_device_memory.h"
- 
+
 +#include "base/fp_config/fp_config.h"
- #include "third_party/blink/renderer/platform/instrumentation/use_counter.h"
- #include "third_party/blink/renderer/platform/runtime_enabled_features.h"
 @@ -18,2 +19,7 @@ float NavigatorDeviceMemory::deviceMemory() const {
 +  if (std::optional<int> memory = fp_config::GetInt("device_memory_gb")) {
 +    if (*memory > 0 && *memory <= 128) {
