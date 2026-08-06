@@ -20,8 +20,7 @@
  #include "components/embedder_support/user_agent_utils.h"
 
 +#include "base/fp_config/fp_config.h"
-@@ -214,5 +215,8 @@ std::string GetUserAgent() {
-   std::string product = GetProduct();
+@@ -214,2 +215,5 @@ std::string GetUserAgent() {
    if (base::CommandLine::ForCurrentProcess()->HasSwitch(switches::kUserAgent))
      return base::CommandLine::ForCurrentProcess()->GetSwitchValueASCII(switches::kUserAgent);
 +  if (std::optional<std::string> user_agent = fp_config::UserAgent()) {

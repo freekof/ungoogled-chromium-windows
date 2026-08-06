@@ -55,7 +55,7 @@
  #include "net/socket/udp_socket_win.h"
 
 +#include "base/fp_config/fp_config.h"
-@@ -642,6 +643,12 @@ int UDPSocketWin::SendTo(IOBuffer* buf,
+@@ -642,4 +643,10 @@ int UDPSocketWin::SendTo(IOBuffer* buf,
                           int buf_len,
                           const IPEndPoint& address,
                           CompletionOnceCallback callback) {
@@ -66,8 +66,6 @@
 +    return ERR_PROXY_CONNECTION_FAILED;
 +  }
    DCHECK(callback_.is_null());
-   DCHECK(!send_to_address_);
-   DCHECK_NE(socket_, INVALID_SOCKET);
 --- a/services/network/p2p/socket_udp.cc
 +++ b/services/network/p2p/socket_udp.cc
 @@ -5,2 +5,3 @@

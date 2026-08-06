@@ -6,11 +6,7 @@
  #include "net/base/network_interfaces.h"
 
 +#include "base/fp_config/fp_config.h"
-@@ -201,7 +202,23 @@
-     mac_address.emplace();
-     if (adapter->PhysicalAddressLength == mac_address->size()) {
-       std::copy_n(reinterpret_cast<const uint8_t*>(adapter->PhysicalAddress),
-                   mac_address->size(), mac_address->begin());
+@@ -205,3 +206,19 @@
      } else {
        mac_address.reset();
      }
