@@ -35,6 +35,7 @@
  #include "base/system/sys_info.h"
 
 +#include "base/fp_config/fp_config.h"
+ 
 @@ -375,3 +377,6 @@
  std::string SysInfo::HardwareModelName() {
 +  if (std::optional<std::string> device_name = fp_config::GetString("device_name")) {
