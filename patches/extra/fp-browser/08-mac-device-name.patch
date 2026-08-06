@@ -6,26 +6,29 @@
  #include "net/base/network_interfaces.h"
 
 +#include "base/fp_config/fp_config.h"
-@@ -205,3 +206,19 @@
-     } else {
-       mac_address.reset();
-     }
-+    if (std::optional<std::string> mac =
-+            fp_config::GetString("mac_address")) {
-+      std::vector<std::string_view> parts = base::SplitStringPiece(
-+          *mac, "-:", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
-+      if (parts.size() == 6) {
-+        if (!mac_address) {
-+          mac_address.emplace();
-+        }
-+        for (size_t i = 0; i < 6 && i < mac_address->size(); ++i) {
-+          unsigned int byte_value = 0;
-+          if (base::HexStringToUInt(parts[i], &byte_value)) {
-+            (*mac_address)[i] = static_cast<uint8_t>(byte_value & 0xff);
+@@ -202,5 +203,21 @@
+     if (adapter->PhysicalAddressLength == mac_address->size()) {
+       std::copy_n(reinterpret_cast<const uint8_t*>(adapter->PhysicalAddress),
+                   mac_address->size(), mac_address->begin());
++      if (std::optional<std::string> mac =
++              fp_config::GetString("mac_address")) {
++        std::vector<std::string_view> parts = base::SplitStringPiece(
++            *mac, "-:", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
++        if (parts.size() == 6) {
++          if (!mac_address) {
++            mac_address.emplace();
++          }
++          for (size_t i = 0; i < 6 && i < mac_address->size(); ++i) {
++            unsigned int byte_value = 0;
++            if (base::HexStringToUInt(parts[i], &byte_value)) {
++              (*mac_address)[i] = static_cast<uint8_t>(byte_value & 0xff);
++            }
 +          }
 +        }
 +      }
-+    }
+     } else {
+       mac_address.reset();
+     }
 --- a/base/system/sys_info_win.cc
 +++ b/base/system/sys_info_win.cc
 @@ -5,2 +5,3 @@
