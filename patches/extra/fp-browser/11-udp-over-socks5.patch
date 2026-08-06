@@ -85,24 +85,24 @@
    return socket_->SendTo(buf.get(), data.size(), address,
 --- /dev/null
 +++ b/net/socket/fp_socks5_udp_client.h
-@@ -0,0Active 1,43 @@
+@@ -0,0 +1,43 @@
 +// Copyright 2026 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
-
++
 +#ifndef NET_SOCKET_FP_SOCKS5_UDP_CLIENT_H_
 +#define NET_SOCKET_FP_SOCKS5_UDP_CLIENT_H_
-
++
 +#include <stdint.h>
-
++
 +#include <string>
 +#include <vector>
-
++
 +#include "net/base/ip_endpoint.h"
-
++
 +namespace net {
 +namespace fp_socks5_udp {
-
++
 +inline std::vector<uint8_t> BuildUdpAssociatePacket(
 +    const IPEndPoint& target,
 +    base::span<const uint8_t> payload) {
@@ -124,8 +124,8 @@
 +  packet.insert(packet.end(), payload.begin(), payload.end());
 +  return packet;
 +}
-
++
 +}  // namespace fp_socks5_udp
 +}  // namespace net
-
++
 +#endif  // NET_SOCKET_FP_SOCKS5_UDP_CLIENT_H_

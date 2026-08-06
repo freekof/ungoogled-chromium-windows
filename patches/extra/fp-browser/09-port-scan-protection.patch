@@ -6,23 +6,23 @@
 +// Copyright 2026 The Chromium Authors
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
-
++
 +#ifndef CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
 +#define CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
-
++
 +#include "base/fp_config/fp_config.h"
 +#include "net/base/net_errors.h"
 +#include "services/network/public/cpp/resource_request.h"
 +#include "third_party/blink/public/common/loader/url_loader_throttle.h"
 +#include "url/gurl.h"
-
++
 +namespace fp_profile {
-
++
 +class FpPortScanThrottle final : public blink::URLLoaderThrottle {
 + public:
 +  FpPortScanThrottle() = default;
 +  ~FpPortScanThrottle() override = default;
-
++
 +  void WillStartRequest(network::ResourceRequest* request,
 +                        bool* defer) override {
 +    if (!request) {
@@ -43,9 +43,9 @@
 +    }
 +  }
 +};
-
++
 +}  // namespace fp_profile
-
++
 +#endif  // CHROME_BROWSER_FP_PROFILE_FP_PORT_SCAN_THROTTLE_H_
 --- a/chrome/browser/chrome_content_browser_client.cc
 +++ b/chrome/browser/chrome_content_browser_client.cc
