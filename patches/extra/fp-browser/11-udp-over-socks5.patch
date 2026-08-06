@@ -63,6 +63,7 @@
 +    // instead of falling back to the host interface.
 +    return ERR_PROXY_CONNECTION_FAILED;
 +  }
+   DCHECK(!send_to_address_);
 --- a/services/network/p2p/socket_udp.cc
 +++ b/services/network/p2p/socket_udp.cc
 @@ -5,2 +5,3 @@
