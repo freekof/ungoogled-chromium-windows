@@ -6,7 +6,7 @@
  #include "third_party/blink/renderer/modules/webgl/webgl_rendering_context_base.h"
 
 +#include "base/fp_config/fp_config.h"
-@@ -4186,6 +4188,11 @@
+@@ -4186,2 +4188,7 @@
      case WebGLDebugRendererInfo::kUnmaskedRendererWebgl:
 +      if (fp_config::ModeIs("webgl.mode", "custom")) {
 +        if (std::optional<std::string> renderer = fp_config::GetString("webgl.renderer")) {
@@ -14,11 +14,7 @@
 +        }
 +      }
        if (ExtensionEnabled(kWebGLDebugRendererInfoName)) {
-         return WebGLAny(script_state,
-                         String(ContextGL()->GetString(GL_RENDERER)));
-       }
-       SynthesizeGLError(
-@@ -4195,6 +4207,11 @@
+@@ -4195,2 +4202,7 @@
      case WebGLDebugRendererInfo::kUnmaskedVendorWebgl:
 +      if (fp_config::ModeIs("webgl.mode", "custom")) {
 +        if (std::optional<std::string> vendor = fp_config::GetString("webgl.vendor")) {
@@ -26,10 +22,6 @@
 +        }
 +      }
        if (ExtensionEnabled(kWebGLDebugRendererInfoName)) {
-         return WebGLAny(script_state,
-                         String(ContextGL()->GetString(GL_VENDOR)));
-       }
-       SynthesizeGLError(
 --- a/third_party/blink/renderer/modules/webgpu/gpu_adapter.cc
 +++ b/third_party/blink/renderer/modules/webgpu/gpu_adapter.cc
 @@ -5,2 +5,3 @@
