@@ -55,32 +55,26 @@
  #include "net/socket/udp_socket_win.h"
 
 +#include "base/fp_config/fp_config.h"
-@@ -642,4 +643,10 @@ int UDPSocketWin::SendTo(IOBuffer* buf,
-                          int buf_len,
-                          const IPEndPoint& address,
-                          CompletionOnceCallback callback) {
+@@ -642,2 +643,8 @@
+   DCHECK(callback_.is_null());
 +  if (fp_config::WebRtcProxyUdp()) {
 +    // SOCKS5 UDP ASSOCIATE support is mandatory for proxy UDP mode. Until the
 +    // association is established by the Network Service, direct UDP is blocked
 +    // instead of falling back to the host interface.
 +    return ERR_PROXY_CONNECTION_FAILED;
 +  }
-   DCHECK(callback_.is_null());
 --- a/services/network/p2p/socket_udp.cc
 +++ b/services/network/p2p/socket_udp.cc
 @@ -5,2 +5,3 @@
  #include "services/network/p2p/socket_udp.h"
 
 +#include "base/fp_config/fp_config.h"
-@@ -305,5 +306,8 @@ int P2PSocketUdp::DoSendToSocket(
-     const net::IPEndPoint& address,
-     rtc::ArrayView<const char> data) {
+@@ -305,2 +306,5 @@
+ int P2PSocketUdp::DoSendToSocket(
 +  if (fp_config::WebRtcProxyUdp() && !fp_config::ProxyConfigured()) {
 +    return net::ERR_PROXY_CONNECTION_FAILED;
 +  }
    scoped_refptr<net::IOBuffer> buf =
-       base::MakeRefCounted<net::WrappedIOBuffer>(base::as_byte_span(data));
-   return socket_->SendTo(buf.get(), data.size(), address,
 --- /dev/null
 +++ b/net/socket/fp_socks5_udp_client.h
 @@ -0,0 +1,43 @@
