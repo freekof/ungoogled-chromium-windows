@@ -21,6 +21,7 @@ ungoogled-chromium/windows/windows-fix-building-with-rust.patch
 ungoogled-chromium/windows/windows-fix-remove-unused-preferences-fields.patch
 ungoogled-chromium/windows/windows-fix-missing-includes.patch
 ungoogled-chromium/windows/windows-fix-unsupported-llvm-flags.patch
+ungoogled-chromium/windows/windows-fix-node-wasm-jit.patch
 extra/fp-browser/01-config-injector.patch
 extra/fp-browser/02-webrtc-modes.patch
 extra/fp-browser/03-timezone-geolocation-language.patch
