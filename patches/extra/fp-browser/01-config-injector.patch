@@ -48,6 +48,7 @@
 +#include <string_view>
 +#include <vector>
 +
++#include "base/values.h"
 +#include "base/command_line.h"
 +#include "base/files/file_path.h"
 +#include "base/files/file_util.h"
@@ -55,7 +56,6 @@
 +#include "base/strings/string_number_conversions.h"
 +#include "base/strings/string_split.h"
 +#include "base/strings/string_util.h"
-+#include "base/values.h"
 +
 +namespace fp_config {
 +
@@ -74,11 +74,11 @@
 +    return std::nullopt;
 +  }
 +
-+  std::optional<base::Value::Dict> value = base::JSONReader::ReadDict(json);
-+  if (!value) {
++  std::optional<base::Value> value = base::JSONReader::Read(json);
++  if (!value || !value->is_dict()) {
 +    return std::nullopt;
 +  }
-+  return value;
++  return std::move(*value).TakeDict();
 +}
 +
 +inline const base::Value::Dict* Root() {
