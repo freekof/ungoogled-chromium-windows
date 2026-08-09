@@ -256,6 +256,18 @@ def main():
             patch_bin_path=(source_tree / _PATCH_BIN_RELPATH)
         )
 
+        # Patch third_party/node/node.py to disable WASM tier-up and prevent WASM JIT crash on Windows
+        node_py_path = source_tree / 'third_party' / 'node' / 'node.py'
+        if node_py_path.exists():
+            node_py_content = node_py_path.read_text(encoding=ENCODING)
+            if 'cmd = [GetBinaryPath()] + cmd_parts' in node_py_content:
+                node_py_content = node_py_content.replace(
+                    'cmd = [GetBinaryPath()] + cmd_parts',
+                    'cmd = [GetBinaryPath(), "--no-wasm-tier-up"] + cmd_parts'
+                )
+                node_py_path.write_text(node_py_content, encoding=ENCODING)
+                get_logger().info('Successfully patched third_party/node/node.py with --no-wasm-tier-up')
+
         # Substitute domains
         domain_substitution_list = (_ROOT_DIR / 'ungoogled-chromium' / 'domain_substitution.list') if args.tarball else (_ROOT_DIR  / 'domain_substitution.list')
         domain_substitution.apply_substitution(
