@@ -263,10 +263,10 @@ def main():
             if 'cmd = [GetBinaryPath()] + cmd_parts' in node_py_content:
                 node_py_content = node_py_content.replace(
                     'cmd = [GetBinaryPath()] + cmd_parts',
-                    'cmd = [GetBinaryPath(), "--no-wasm-tier-up"] + cmd_parts'
+                    'cmd = [GetBinaryPath(), "--no-wasm-tier-up", "--no-wasm-code-gc", "--v8-pool-size=1"] + cmd_parts'
                 )
                 node_py_path.write_text(node_py_content, encoding=ENCODING)
-                get_logger().info('Successfully patched third_party/node/node.py with --no-wasm-tier-up')
+                get_logger().info('Successfully patched third_party/node/node.py with V8 WASM flags')
 
         # Substitute domains
         domain_substitution_list = (_ROOT_DIR / 'ungoogled-chromium' / 'domain_substitution.list') if args.tarball else (_ROOT_DIR  / 'domain_substitution.list')
