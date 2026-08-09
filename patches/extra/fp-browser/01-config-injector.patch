@@ -74,11 +74,11 @@
 +    return std::nullopt;
 +  }
 +
-+  std::optional<base::Value> value = base::JSONReader::Read(json, 0);
-+  if (!value || !value->is_dict()) {
++  std::optional<base::Value::Dict> dict = base::JSONReader::ReadDict(json, 0);
++  if (!dict) {
 +    return std::nullopt;
 +  }
-+  return std::move(*value).TakeDict();
++  return dict;
 +}
 +
 +inline const base::Value::Dict* Root() {
