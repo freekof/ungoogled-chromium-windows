@@ -1,0 +1,84 @@
+# Fingerprint browser: migrate fp_config.h to the Chromium 151 base::Value API.
+#
+# Chromium 151 removed the base::Value::Dict nested type (replaced by the
+# standalone base::DictValue container) and parses JSON through
+# base::JSONReader::Read() which returns a base::Value. This patch keeps the
+# fp_config load/query behavior identical by:
+#   - returning a std::optional<base::Value> from LoadRoot()
+#   - validating the parsed top-level value is a dictionary
+#   - traversing nested keys through base::Value::GetDict().Find()
+# The existing fp_config fetch/query interfaces are unchanged.
+
+--- a/base/fp_config/fp_config.h
++++ b/base/fp_config/fp_config.h
+@@ -30,19 +30,19 @@
+-inline std::optional<base::Value::Dict> LoadRoot() {
++inline std::optional<base::Value> LoadRoot() {
+   const base::CommandLine* command_line =
+       base::CommandLine::ForCurrentProcess();
+   if (!command_line || !command_line->HasSwitch(kSwitchName)) {
+     return std::nullopt;
+   }
+ 
+   std::string json;
+   if (!base::ReadFileToString(command_line->GetSwitchValuePath(kSwitchName),
+                               &json)) {
+     return std::nullopt;
+   }
+ 
+-  std::optional<base::Value::Dict> dict = base::JSONReader::ReadDict(json, 0);
+-  if (!dict) {
++  std::optional<base::Value> value = base::JSONReader::Read(json, 0);
++  if (!value || !value->is_dict()) {
+     return std::nullopt;
+   }
+-  return dict;
++  return std::move(value.value());
+ }
+@@ -49,10 +49,10 @@
+ 
+-inline const base::Value::Dict* Root() {
+-  static const std::optional<base::Value::Dict> root = LoadRoot();
++inline const base::Value* Root() {
++  static const std::optional<base::Value> root = LoadRoot();
+   return root ? &root.value() : nullptr;
+ }
+ 
+ inline bool Enabled() {
+   return Root() != nullptr;
+ }
+ 
+@@ -59,29 +59,29 @@
+ inline const base::Value* FindPath(std::string_view path) {
+-  const base::Value::Dict* dict = Root();
++  const base::Value* dict = Root();
+   if (!dict) {
+     return nullptr;
+   }
+ 
+   std::vector<std::string_view> parts = base::SplitStringPiece(
+       path, ".", base::TRIM_WHITESPACE, base::SPLIT_WANT_NONEMPTY);
+   if (parts.empty()) {
+     return nullptr;
+   }
+ 
+-  const base::Value::Dict* current_dict = dict;
++  const base::Value* current_dict = dict;
+   const base::Value* current_value = nullptr;
+   for (size_t i = 0; i < parts.size(); ++i) {
+-    current_value = current_dict->Find(parts[i]);
++    current_value = current_dict->GetDict().Find(parts[i]);
+     if (!current_value) {
+       return nullptr;
+     }
+     if (i + 1 == parts.size()) {
+       return current_value;
+     }
+     if (!current_value->is_dict()) {
+       return nullptr;
+     }
+-    current_dict = &current_value->GetDict();
++    current_dict = current_value;
+   }
+   return nullptr;
+ }
