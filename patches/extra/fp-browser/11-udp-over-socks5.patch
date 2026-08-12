@@ -51,31 +51,42 @@
  }
 --- a/net/socket/udp_socket_win.cc
 +++ b/net/socket/udp_socket_win.cc
-@@ -5,2 +5,3 @@
+@@ -3,5 +3,6 @@
+ // found in the LICENSE file.
+ 
  #include "net/socket/udp_socket_win.h"
-
 +#include "base/fp_config/fp_config.h"
-@@ -642,2 +643,8 @@
-   DCHECK(callback_.is_null());
+ 
+ #include <winsock2.h>
+@@ -528,6 +529,12 @@
+  CHECK(write_callback_.is_null());
+  DCHECK(!callback.is_null());  // Synchronous operation not supported.
+  DCHECK_GT(buf_len, 0);
 +  if (fp_config::WebRtcProxyUdp()) {
 +    // SOCKS5 UDP ASSOCIATE support is mandatory for proxy UDP mode. Until the
 +    // association is established by the Network Service, direct UDP is blocked
 +    // instead of falling back to the host interface.
 +    return ERR_PROXY_CONNECTION_FAILED;
 +  }
-   DCHECK(!send_to_address_);
+  DCHECK(!send_to_address_.get());
+ 
+  int nwrite = core_ ? InternalSendToOverlapped(buf, buf_len, address)
 --- a/services/network/p2p/socket_udp.cc
 +++ b/services/network/p2p/socket_udp.cc
 @@ -5,2 +5,3 @@
  #include "services/network/p2p/socket_udp.h"
 
 +#include "base/fp_config/fp_config.h"
-@@ -305,2 +306,5 @@
- int P2PSocketUdp::DoSendToSocket(
+@@ -465,6 +465,9 @@
+ 
+ bool P2PSocketUdp::DoSendToSocket(const P2PPendingPacket& packet,
+                                   int64_t send_time_ms) {
 +  if (fp_config::WebRtcProxyUdp() && !fp_config::ProxyConfigured()) {
-+    return net::ERR_PROXY_CONNECTION_FAILED;
++    return false;
 +  }
-   scoped_refptr<net::IOBuffer> buf =
+   CHECK(!send_pending_);
+ 
+   auto callback_binding = base::BindRepeating(
 --- /dev/null
 +++ b/net/socket/fp_socks5_udp_client.h
 @@ -0,0 +1,43 @@
